@@ -25,47 +25,48 @@ CREATE TABLE users
 CREATE TABLE course
 (
     course_id      SERIAL PRIMARY KEY,
-    creator_id     INTEGER REFERENCES users (user_id),
-    title          VARCHAR(255) NOT NULL,
+    creator_id     INTEGER REFERENCES users (user_id) NOT NULL,
+    title          VARCHAR(255)                       NOT NULL,
     published_date DATE DEFAULT CURRENT_DATE
 );
 
 CREATE TABLE course_section
 (
     section_id     SERIAL PRIMARY KEY,
-    course_id      INTEGER REFERENCES course (course_id),
-    content        TEXT    NOT NULL,
-    section_number INTEGER NOT NULL
+    course_id      INTEGER REFERENCES course (course_id) NOT NULL,
+    content        TEXT                                  NOT NULL,
+    section_number INTEGER                               NOT NULL
 );
 
 CREATE TABLE course_section_media_file
 (
     section_media_id SERIAL PRIMARY KEY,
-    section_id       INTEGER REFERENCES course_section (section_id),
-    file_id          INTEGER REFERENCES media_file (file_id)
+    section_id       INTEGER REFERENCES course_section (section_id) NOT NULL,
+    file_id          INTEGER REFERENCES media_file (file_id)        NOT NULL
 );
 
 CREATE TABLE favorite_course
 (
     favorite_id SERIAL PRIMARY KEY,
-    user_id     INTEGER REFERENCES users (user_id),
-    course_id   INTEGER REFERENCES course (course_id)
+    user_id     INTEGER REFERENCES users (user_id)    NOT NULL,
+    course_id   INTEGER REFERENCES course (course_id) NOT NULL
 );
 
 CREATE TABLE learning_progress
 (
     progress_id  SERIAL PRIMARY KEY,
-    user_id      INTEGER REFERENCES users (user_id),
-    section_id   INTEGER REFERENCES course_section (section_id),
+    user_id      INTEGER REFERENCES users (user_id)             NOT NULL,
+    section_id   INTEGER REFERENCES course_section (section_id) NOT NULL,
     is_completed BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE course_request
 (
     request_id   SERIAL PRIMARY KEY,
-    user_id      INTEGER REFERENCES users (user_id),
-    course_id    INTEGER REFERENCES course (course_id),
-    request_type request_type NOT NULL,
+    user_id      INTEGER REFERENCES users (user_id)    NOT NULL,
+    course_id    INTEGER REFERENCES course (course_id) NOT NULL,
+    inspector_id INTEGER REFERENCES users (user_id),
+    request_type request_type                          NOT NULL,
     status       status    DEFAULT 'in_processing',
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     comment      TEXT
@@ -74,7 +75,7 @@ CREATE TABLE course_request
 CREATE TABLE course_rating
 (
     rating_id SERIAL PRIMARY KEY,
-    user_id   INTEGER REFERENCES users (user_id),
-    course_id INTEGER REFERENCES course (course_id),
-    value     rating_value NOT NULL
+    user_id   INTEGER REFERENCES users (user_id)    NOT NULL,
+    course_id INTEGER REFERENCES course (course_id) NOT NULL,
+    value     rating_value                          NOT NULL
 );
