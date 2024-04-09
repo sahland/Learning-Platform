@@ -24,11 +24,10 @@ CREATE TABLE users
 
 CREATE TABLE user_settings
 (
-    setting_id   SERIAL PRIMARY KEY,
-    user_id      BIGINT REFERENCES users (user_id) NOT NULL,
+    setting_id            SERIAL PRIMARY KEY,
+    user_id               BIGINT REFERENCES users (user_id) NOT NULL,
     disable_notifications BOOLEAN DEFAULT FALSE
 );
-
 
 CREATE TABLE notification
 (
