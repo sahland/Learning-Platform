@@ -22,6 +22,14 @@ CREATE TABLE users
     user_role      USER_ROLE    NOT NULL DEFAULT 'USER'
 );
 
+CREATE TABLE user_settings
+(
+    setting_id   SERIAL PRIMARY KEY,
+    user_id      BIGINT REFERENCES users (user_id) NOT NULL,
+    disable_notifications BOOLEAN DEFAULT FALSE
+);
+
+
 CREATE TABLE notification
 (
     notification_id SERIAL PRIMARY KEY,
