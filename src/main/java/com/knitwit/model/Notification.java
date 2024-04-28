@@ -1,9 +1,9 @@
-package com.knitwit.entity;
+package com.knitwit.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Data
 @Entity
@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "notification_id")
+    private int notificationId;
 
     @Column(name = "sender_id")
     private Long senderId;
@@ -23,5 +24,5 @@ public class Notification {
     private String message;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
 }

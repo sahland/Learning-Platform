@@ -1,9 +1,11 @@
-package com.knitwit.entity;
+package com.knitwit.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Entity
@@ -11,7 +13,8 @@ import java.time.LocalDateTime;
 public class MediaFile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "file_id")
+    private int fileId;
 
     @Column(name = "file_key")
     private String fileKey;
@@ -26,5 +29,8 @@ public class MediaFile {
     private String fileType;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
+
+    @ManyToMany(mappedBy = "mediaFiles")
+    private Set<CourseSection> sections = new HashSet<>();
 }

@@ -1,11 +1,11 @@
-package com.knitwit.entity;
+package com.knitwit.model;
 
 import com.knitwit.enums.RequestType;
 import com.knitwit.enums.Status;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Data
 @Entity
@@ -13,18 +13,19 @@ import java.time.LocalDateTime;
 public class CourseRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "request_id")
+    private int requestId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "course_id", referencedColumnName = "id")
+    @JoinColumn(name = "course_id", referencedColumnName = "course_id")
     private Course course;
 
     @ManyToOne
-    @JoinColumn(name = "inspector_id", referencedColumnName = "id")
+    @JoinColumn(name = "inspector_id", referencedColumnName = "user_id")
     private User inspector;
 
     @Enumerated(EnumType.STRING)
@@ -36,7 +37,7 @@ public class CourseRequest {
     private Status status;
 
     @Column(name = "request_date")
-    private LocalDateTime requestDate;
+    private Timestamp requestDate;
 
     @Column(name = "comment")
     private String comment;

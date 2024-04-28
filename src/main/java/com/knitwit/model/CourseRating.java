@@ -1,4 +1,4 @@
-package com.knitwit.entity;
+package com.knitwit.model;
 
 import com.knitwit.enums.RatingValue;
 import jakarta.persistence.*;
@@ -10,14 +10,15 @@ import lombok.Data;
 public class CourseRating {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "rating_id")
+    private int ratingId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "course_id", referencedColumnName = "id")
+    @JoinColumn(name = "course_id", referencedColumnName = "course_id")
     private Course course;
 
     @Enumerated(EnumType.STRING)

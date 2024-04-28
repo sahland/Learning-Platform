@@ -1,4 +1,4 @@
-package com.knitwit.entity;
+package com.knitwit.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -9,14 +9,15 @@ import lombok.Data;
 public class LearningProgress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "progress_id")
+    private int progressId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "section_id", referencedColumnName = "id")
+    @JoinColumn(name = "section_id", referencedColumnName = "section_id")
     private CourseSection section;
 
     @Column(name = "is_completed")
