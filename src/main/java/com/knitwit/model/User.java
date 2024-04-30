@@ -24,5 +24,9 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "course_id")
     )
+
     private Set<Course> courses = new HashSet<>();
+
+    @OneToMany(mappedBy = "user")
+    private Set<LearningProgress> learningProgresses = new HashSet<>();
 }

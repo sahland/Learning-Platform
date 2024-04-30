@@ -14,7 +14,7 @@ public class UserNotification {
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
-    private User userId;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "notification_id", referencedColumnName = "notification_id")

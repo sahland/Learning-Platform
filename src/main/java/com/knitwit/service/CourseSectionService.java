@@ -1,6 +1,7 @@
 package com.knitwit.service;
 
 import com.knitwit.model.CourseSection;
+import com.knitwit.model.MediaFile;
 import com.knitwit.repository.CourseSectionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,5 +52,11 @@ public class CourseSectionService {
     public CourseSection getCourseSectionById(int sectionId) {
         return courseSectionRepository.findById(sectionId)
                 .orElseThrow(() -> new IllegalArgumentException("Course section not found with id: " + sectionId));
+    }
+
+    // Метод для добавления медиа-файла в раздел курса
+    public void addMediaFileToCourseSection(MediaFile mediaFile, CourseSection section) {
+        section.getMediaFiles().add(mediaFile);
+        courseSectionRepository.save(section);
     }
 }

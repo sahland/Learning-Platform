@@ -1,5 +1,6 @@
 package com.knitwit.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -31,6 +32,7 @@ public class MediaFile {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "mediaFiles")
     private Set<CourseSection> sections = new HashSet<>();
 }

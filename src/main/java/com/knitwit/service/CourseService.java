@@ -2,11 +2,10 @@ package com.knitwit.service;
 
 import com.knitwit.model.Course;
 import com.knitwit.model.Tag;
+import com.knitwit.model.User;
 import com.knitwit.repository.CourseRepository;
 import com.knitwit.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,30 +55,31 @@ public class CourseService {
                 .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
     }
 
+    //получение всех курсов
+    public List<Course> getAllCourses() {
+        return courseRepository.findAll();
+    }
+
     //получение курсов по нескольким id
-    public Page<Course> getCoursesByIds(List<Integer> courseIds, Pageable pageable) {
-        return (Page<Course>) courseRepository.findAllByIdWithPagination(courseIds, pageable);
+    public List<Course> getCoursesByIds(List<Integer> courseIds) {
+        return courseRepository.findAllByCourseIdIn(courseIds);
     }
 
     //получение колличества курсов
-    public long countAllCourse(){
+    public long countAllCourses(){
         return courseRepository.count();
     }
 
     //получение курсов по пользователею
-    public Page<Course> getCourseCreatedByUser(int userId, Pageable pageable) {
-        return courseRepository.findByCreatorUserId(userId, pageable);
+    public List<Course> getCoursesCreatedByUser(int userId) {
+        return courseRepository.findByCreatorUserId(userId);
     }
 
     //получение курсов по названию
-    public Page<Course> searchCoursesByTitle(String keyword, Pageable pageable) {
-        return courseRepository.findByTitleContaining(keyword, pageable);
+    public List<Course> searchCoursesByTitle(String keyword) {
+        return courseRepository.findByTitleContaining(keyword);
     }
 
-    //получение всех курсов
-    public Page<Course> getAllCourses(Pageable pageable) {
-        return courseRepository.findAll(pageable);
-    }
 
     //добавление тега к курсу
     @Transactional
@@ -115,5 +115,19 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
         return course.getTags();
+    }
+
+    //подписка пользователя на курс
+    @Transactional
+    public void subscribeToCourse(User user, Course course) {
+        user.getCourses().add(course);
+        course.getSubscribers().add(user);
+    }
+
+    //отписка пользователя от курса
+    @Transactional
+    public void unsubscribeFromCourse(User user, Course course) {
+        user.getCourses().remove(course);
+        course.getSubscribers().remove(user);
     }
 }
