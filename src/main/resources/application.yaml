@@ -20,20 +20,20 @@ spring:
     baselineOnMigrate: true
     locations: classpath:db/migration
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/realms/KnitWit-realm
-      client:
-        provider:
-          keycloack:
-            issuer-uri: http://localhost:8080/realms/KnitWit-realm
-            user-name-attribute: preferred_username
-        registration:
-          keycloack:
-            client-id: KnitWit-client
-            client-secret: 49mt5UMHbYdkqTDDnhOaC87xpllp6Jfh
-            scope: openid
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: http://localhost:8080/realms/KnitWit-realm
+#      client:
+#        provider:
+#          keycloack:
+#            issuer-uri: http://localhost:8080/realms/KnitWit-realm
+#            user-name-attribute: preferred_username
+#        registration:
+#          keycloack:
+#            client-id: KnitWit-client
+#            client-secret: 49mt5UMHbYdkqTDDnhOaC87xpllp6Jfh
+#            scope: openid
 server:
   port: 8081

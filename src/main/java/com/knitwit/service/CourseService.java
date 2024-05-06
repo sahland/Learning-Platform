@@ -5,6 +5,7 @@ import com.knitwit.model.Tag;
 import com.knitwit.model.User;
 import com.knitwit.repository.CourseRepository;
 import com.knitwit.repository.TagRepository;
+import com.knitwit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +19,13 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
     private final TagRepository tagRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public CourseService(CourseRepository courseRepository, TagRepository tagRepository) {
+    public CourseService(CourseRepository courseRepository, TagRepository tagRepository, UserRepository userRepository) {
         this.courseRepository = courseRepository;
         this.tagRepository = tagRepository;
+        this.userRepository = userRepository;
     }
 
     //создание курса
@@ -119,14 +122,22 @@ public class CourseService {
 
     //подписка пользователя на курс
     @Transactional
-    public void subscribeToCourse(User user, Course course) {
+    public void subscribeToCourse(int userId, int courseId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
         user.getCourses().add(course);
         course.getSubscribers().add(user);
     }
 
     //отписка пользователя от курса
     @Transactional
-    public void unsubscribeFromCourse(User user, Course course) {
+    public void unsubscribeFromCourse(int userId, int courseId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
         user.getCourses().remove(course);
         course.getSubscribers().remove(user);
     }

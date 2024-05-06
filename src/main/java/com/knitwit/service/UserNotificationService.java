@@ -17,7 +17,7 @@ public class UserNotificationService {
         this.userNotificationRepository = userNotificationRepository;
     }
 
-    // Метод для сохранения уведомления пользователя
+    // Метод для добавления уведомления пользователю
     public UserNotification saveUserNotification(UserNotification userNotification) {
         return userNotificationRepository.save(userNotification);
     }

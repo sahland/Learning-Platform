@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование Уведомлений Пользователя</title>
+</head>
+<body>
+<h1>Тестирование Уведомлений Пользователя</h1>
+
+<!-- Форма для сохранения нового уведомления пользователя -->
+<form id="saveNotificationForm">
+    <label for="userId">ID Пользователя:</label>
+    <input type="text" id="userId" name="userId" required><br><br>
+
+    <label for="notificationTitle">Заголовок Уведомления:</label>
+    <input type="text" id="notificationTitle" name="notificationTitle" required><br><br>
+
+    <label for="notificationMessage">Текст Уведомления:</label><br>
+    <textarea id="notificationMessage" name="notificationMessage" rows="4" cols="50" required></textarea><br><br>
+
+    <button type="submit">Сохранить Уведомление</button>
+</form>
+
+<hr>
+
+<!-- Кнопки для вызова других методов контроллера -->
+<button onclick="markNotificationAsRead()">Отметить Уведомление как Прочитанное</button><br><br>
+<button onclick="getAllUserNotifications()">Получить Все Уведомления Пользователя</button><br><br>
+<button onclick="getAllUnreadUserNotifications()">Получить Все Непрочитанные Уведомления Пользователя</button><br><br>
+<button onclick="getUnreadUserNotificationCount()">Получить Количество Непрочитанных Уведомлений Пользователя</button><br><br>
+
+<!-- Блок для отображения результатов -->
+<div id="resultDiv"></div>
+
+<script>
+    // Функция для обработки отправки формы и сохранения нового уведомления пользователя
+    document.getElementById("saveNotificationForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        var userId = document.getElementById("userId").value;
+        var title = document.getElementById("notificationTitle").value;
+        var message = document.getElementById("notificationMessage").value;
+
+        fetch("/user-notifications/save", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "user": {"userId": userId},
+                "notification": {"title": title, "message": message}
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("resultDiv").innerText = "Новое уведомление сохранено:\n" + JSON.stringify(data);
+            })
+            .catch(error => console.error("Ошибка при сохранении уведомления:", error));
+    });
+
+    // Функция для вызова метода markNotificationAsRead
+    function markNotificationAsRead() {
+        var notificationId = prompt("Введите ID уведомления:");
+        fetch(`/user-notifications/${notificationId}/mark-as-read`, {
+            method: "PUT"
+        })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById("resultDiv").innerText = "Уведомление отмечено как прочитанное.";
+                } else {
+                    document.getElementById("resultDiv").innerText = "Ошибка при отметке уведомления как прочитанного.";
+                }
+            })
+            .catch(error => console.error("Ошибка при отметке уведомления как прочитанного:", error));
+    }
+
+    // Функция для вызова метода getAllUserNotifications
+    function getAllUserNotifications() {
+        fetch("/user-notifications/all")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("resultDiv").innerText = "Все уведомления пользователя:\n" + JSON.stringify(data);
+            })
+            .catch(error => console.error("Ошибка при получении всех уведомлений пользователя:", error));
+    }
+
+    // Функция для вызова метода getAllUnreadUserNotifications
+    function getAllUnreadUserNotifications() {
+        fetch("/user-notifications/unread")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("resultDiv").innerText = "Все непрочитанные уведомления пользователя:\n" + JSON.stringify(data);
+            })
+            .catch(error => console.error("Ошибка при получении всех непрочитанных уведомлений пользователя:", error));
+    }
+
+    // Функция для вызова метода getUnreadUserNotificationCount
+    function getUnreadUserNotificationCount() {
+        fetch("/user-notifications/unread/count")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("resultDiv").innerText = "Количество непрочитанных уведомлений пользователя: " + data;
+            })
+            .catch(error => console.error("Ошибка при получении количества непрочитанных уведомлений пользователя:", error));
+    }
+</script>
+</body>
+</html>

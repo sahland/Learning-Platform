@@ -27,8 +27,10 @@ public class CourseSectionService {
 
     //удаление раздела курса
     @Transactional
-    public void deleteCourseSection(CourseSection courseSection) {
-        courseSectionRepository.delete(courseSection);
+    public void deleteCourseSection(int sectionId) {
+        CourseSection section = courseSectionRepository.findById(sectionId)
+                .orElseThrow(() -> new IllegalArgumentException("Course section not found with id: " + sectionId));
+        courseSectionRepository.delete(section);
     }
 
     //редактирование раздела курса
