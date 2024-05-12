@@ -4,6 +4,7 @@ import com.knitwit.model.CourseSection;
 import com.knitwit.service.CourseSectionService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +19,19 @@ public class CourseSectionController {
 
     @Operation(summary = "Создание раздела курса")
     @PostMapping
-    public ResponseEntity<CourseSection> createCourseSection(@RequestBody CourseSection courseSection) {
-        CourseSection createdSection = courseSectionService.createCourseSection(courseSection);
-        return ResponseEntity.ok(createdSection);
+    public ResponseEntity<CourseSection> createSection(@RequestBody CourseSection section) {
+        CourseSection createdSection = courseSectionService.createSection(section);
+        return new ResponseEntity<>(createdSection, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{sectionId}")
+    public ResponseEntity<CourseSection> getSectionById(@PathVariable int sectionId) {
+        CourseSection section = courseSectionService.getSectionById(sectionId);
+        if (section != null) {
+            return new ResponseEntity<>(section, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @Operation(summary = "Удаление раздела курса")
@@ -42,12 +53,5 @@ public class CourseSectionController {
     public ResponseEntity<List<CourseSection>> getAllCourseSections() {
         List<CourseSection> sections = courseSectionService.getAllCourseSections();
         return ResponseEntity.ok(sections);
-    }
-
-    @Operation(summary = "Получение раздела курса по его ID")
-    @GetMapping("/{sectionId}")
-    public ResponseEntity<CourseSection> getCourseSectionById(@PathVariable int sectionId) {
-        CourseSection section = courseSectionService.getCourseSectionById(sectionId);
-        return ResponseEntity.ok(section);
     }
 }

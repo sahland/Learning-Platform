@@ -2,11 +2,13 @@ package com.knitwit.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -16,7 +18,7 @@ public class User {
     private int userId;
 
     @Column(name = "avatar_file_id")
-    private Long avatarFileId;
+    private int avatarFileId;
 
     @ManyToMany
     @JoinTable(

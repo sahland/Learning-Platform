@@ -1,5 +1,3 @@
-CREATE TYPE REQUEST_TYPE AS ENUM ('ADD', 'REMOVE', 'EDIT');
-CREATE TYPE STATUS AS ENUM ('CONFIRMED', 'REJECTED', 'IN_PROCESSING');
 CREATE TYPE RATING_VALUE AS ENUM ('1', '2', '3', '4', '5');
 
 CREATE TABLE media_file
@@ -16,7 +14,7 @@ CREATE TABLE users
 (
     user_id        SERIAL PRIMARY KEY,
     avatar_file_id INTEGER REFERENCES media_file (file_id),
-    nickname       VARCHAR(25)
+    nickname       VARCHAR(25) NOT NULL
 );
 
 CREATE TABLE notification
@@ -39,9 +37,10 @@ CREATE TABLE user_notification
 CREATE TABLE course
 (
     course_id      SERIAL PRIMARY KEY,
-    creator_id     INTEGER REFERENCES users (user_id) NOT NULL,
-    title          VARCHAR(255)                       NOT NULL,
-    published_date DATE DEFAULT CURRENT_DATE
+    creator_id     INTEGER REFERENCES users (user_id),
+    title          VARCHAR(255),
+    published_date DATE         DEFAULT CURRENT_DATE,
+    status         VARCHAR(20) DEFAULT 'IN_PROCESSING'
 );
 
 CREATE TABLE course_section
@@ -58,18 +57,6 @@ CREATE TABLE learning_progress
     user_id      INTEGER REFERENCES users (user_id)             NOT NULL,
     section_id   INTEGER REFERENCES course_section (section_id) NOT NULL,
     is_completed BOOLEAN DEFAULT FALSE
-);
-
-CREATE TABLE course_request
-(
-    request_id   SERIAL PRIMARY KEY,
-    user_id      INTEGER REFERENCES users (user_id)    NOT NULL,
-    course_id    INTEGER REFERENCES course (course_id) NOT NULL,
-    inspector_id INTEGER REFERENCES users (user_id),
-    request_type REQUEST_TYPE                          NOT NULL,
-    status       STATUS       DEFAULT 'IN_PROCESSING',
-    request_date TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
-    comment      TEXT
 );
 
 CREATE TABLE course_rating
@@ -89,22 +76,22 @@ CREATE TABLE tag
 CREATE TABLE course_section_media_file
 (
     section_media_id SERIAL PRIMARY KEY,
-    section_id       BIGINT REFERENCES course_section (section_id) NOT NULL,
-    file_id          BIGINT REFERENCES media_file (file_id)        NOT NULL
+    section_id       INTEGER REFERENCES course_section (section_id) NOT NULL,
+    file_id          INTEGER REFERENCES media_file (file_id)        NOT NULL
 );
 
 CREATE TABLE course_subscription
 (
     subscription_id SERIAL PRIMARY KEY,
-    user_id         BIGINT REFERENCES users (user_id)    NOT NULL,
-    course_id       BIGINT REFERENCES course (course_id) NOT NULL
+    user_id         INTEGER REFERENCES users (user_id)    NOT NULL,
+    course_id       INTEGER REFERENCES course (course_id) NOT NULL
 );
 
 CREATE TABLE course_tag
 (
     course_tag_id SERIAL PRIMARY KEY,
-    course_id     BIGINT REFERENCES course (course_id) NOT NULL,
-    tag_id        BIGINT REFERENCES tag (tag_id)       NOT NULL
+    course_id     INTEGER REFERENCES course (course_id) NOT NULL,
+    tag_id        INTEGER REFERENCES tag (tag_id)       NOT NULL
 );
 
 -- Создание функции для обновления никнейма
@@ -117,7 +104,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Создание триггера для вызова функции перед вставкой новой записи в таблицу users
 CREATE TRIGGER update_nickname_trigger
     BEFORE INSERT
     ON users

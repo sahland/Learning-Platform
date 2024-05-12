@@ -12,17 +12,16 @@ import java.util.Optional;
 
 @Service
 public class CourseSectionService {
-    private final CourseSectionRepository courseSectionRepository;
 
     @Autowired
-    public CourseSectionService(CourseSectionRepository courseSectionRepository) {
-        this.courseSectionRepository = courseSectionRepository;
+    private CourseSectionRepository courseSectionRepository;
+
+    public CourseSection createSection(CourseSection section) {
+        return courseSectionRepository.save(section);
     }
 
-    //создание раздела курса
-    @Transactional
-    public CourseSection createCourseSection(CourseSection courseSection) {
-        return courseSectionRepository.save(courseSection);
+    public CourseSection getSectionById(int sectionId) {
+        return courseSectionRepository.findById(sectionId).orElse(null);
     }
 
     //удаление раздела курса

@@ -22,11 +22,25 @@ INSERT INTO tag (tag_name)
 SELECT substr(md5(random()::text), 1, 10)
 FROM generate_series(1, 100);
 
+-- Вставка данных в таблицу course_section
+INSERT INTO course (creator_id, title, published_date)
+SELECT user_id,
+       'Course ' || gs.id,
+       CURRENT_DATE - INTERVAL '7 days' * (random() * 30)::int
+FROM (SELECT generate_series(1, 100) AS id) AS gs
+         CROSS JOIN (SELECT user_id FROM users ORDER BY random() LIMIT 100) AS u
+ORDER BY random()
+LIMIT 100;
+
 -- Вставка данных в таблицу course
-INSERT INTO course (creator_id, title)
-SELECT (SELECT user_id FROM users ORDER BY random() LIMIT 1),
-       'Course ' || generate_series
-FROM generate_series(1, 100);
+INSERT INTO course_section (course_id, content, section_number)
+SELECT course_id,
+       md5(random()::text),
+       row_number() over (partition by course_id order by random())
+FROM course
+ORDER BY random()
+LIMIT 100;
+
 
 -- Вставка данных в таблицу course_tag
 WITH numbered_courses AS (SELECT course_id,
@@ -69,16 +83,6 @@ WHERE (nu.user_row_number, nc.course_row_number) IN (SELECT user_row_number,
 ORDER BY random()
 LIMIT 100;
 
--- Вставка данных в таблицу course_section
-INSERT INTO course_section (course_id, content, section_number)
-SELECT course_id,
-       md5(random()::text),
-       floor(random() * 10 + 1)
-FROM course
-         CROSS JOIN generate_series(1, 10) as s
-ORDER BY random()
-LIMIT 100;
-
 -- Вставка данных в таблицу course_rating
 INSERT INTO course_rating (user_id, course_id, value)
 SELECT (SELECT user_id FROM users ORDER BY random() LIMIT 1),
@@ -109,24 +113,6 @@ SELECT user_id,
 FROM generate_series(1, 100) as s,
      LATERAL (SELECT user_id FROM users ORDER BY random() LIMIT 1) AS u,
      LATERAL (SELECT section_id FROM course_section ORDER BY random() LIMIT 1) AS cs;
-
--- Вставка данных в таблицу course_request
-INSERT INTO course_request (user_id, course_id, inspector_id, request_type, status, comment)
-SELECT (SELECT user_id FROM users ORDER BY random() LIMIT 1),
-       (SELECT course_id FROM course ORDER BY random() LIMIT 1),
-       (SELECT user_id FROM users ORDER BY random() LIMIT 1),
-       (CASE floor(random() * 3)
-            WHEN 0 THEN 'ADD'
-            WHEN 1 THEN 'REMOVE'
-            ELSE 'EDIT'
-           END)::REQUEST_TYPE,
-       (CASE floor(random() * 3)
-            WHEN 0 THEN 'CONFIRMED'
-            WHEN 1 THEN 'REJECTED'
-            ELSE 'IN_PROCESSING'
-           END)::STATUS,
-       md5(random()::text)
-FROM generate_series(1, 100);
 
 -- Вставка данных в таблицу notification
 INSERT INTO notification (sender_id, title, message)

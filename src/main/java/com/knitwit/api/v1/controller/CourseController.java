@@ -1,14 +1,15 @@
 package com.knitwit.api.v1.controller;
 
 import com.knitwit.model.Course;
+import com.knitwit.model.CourseSection;
 import com.knitwit.model.Tag;
-import com.knitwit.model.User;
 import com.knitwit.service.CourseService;
+import com.knitwit.service.CourseSectionService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,14 +19,26 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/v1/courses")
 public class CourseController {
-    @Autowired
-    private CourseService courseService;
 
-    @Operation(summary = "Создать новый курс")
+    private final CourseService courseService;
+    private final CourseSectionService courseSectionService;
+
+    @Autowired
+    public CourseController(CourseService courseService, CourseSectionService courseSectionService) {
+        this.courseService = courseService;
+        this.courseSectionService = courseSectionService;
+    }
+
     @PostMapping
-    public ResponseEntity<Course> createCourse(@RequestBody Course course) {
-        Course createdCourse = courseService.addCourse(course);
-        return ResponseEntity.ok(createdCourse);
+    public ResponseEntity<Course> createCourseWithSection(@RequestBody CourseWithSectionRequest request) {
+        Course createdCourse = courseService.createCourseWithSection(request.getCourse(), request.getSection());
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCourse);
+    }
+
+    @PostMapping("/{courseId}/sections")
+    public ResponseEntity<CourseSection> addSectionToCourse(@PathVariable int courseId, @RequestBody CourseSection section) {
+        CourseSection addedSection = courseService.addSectionToCourse(courseId, section);
+        return ResponseEntity.status(HttpStatus.CREATED).body(addedSection);
     }
 
     @Operation(summary = "Удалить курс по ID")
@@ -48,8 +61,8 @@ public class CourseController {
 
     @Operation(summary = "Обновить курс по ID")
     @PutMapping("/{courseId}")
-    public ResponseEntity<Course> updateCourse(@PathVariable int courseId, @RequestBody Course updatedCourse) {
-        Course course = courseService.updateCourse(courseId, updatedCourse);
+    public ResponseEntity<Course> updateCourse(@PathVariable int courseId, @RequestBody Course updatedCourse, @RequestParam(required = false) boolean publish) {
+        Course course = courseService.updateCourse(courseId, updatedCourse, publish);
         return ResponseEntity.ok(course);
     }
 
@@ -57,7 +70,11 @@ public class CourseController {
     @GetMapping("/{courseId}")
     public ResponseEntity<Course> getCourseById(@PathVariable int courseId) {
         Course course = courseService.getCourseById(courseId);
-        return ResponseEntity.ok(course);
+        if (course != null) {
+            return new ResponseEntity<>(course, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @Operation(summary = "Получить все курсы")

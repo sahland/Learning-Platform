@@ -15,7 +15,7 @@ public class Notification {
     private int notificationId;
 
     @Column(name = "sender_id")
-    private Long senderId;
+    private int senderId;
 
     @Column(name = "title")
     private String title;

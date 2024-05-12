@@ -1,15 +1,21 @@
 package com.knitwit.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.knitwit.enums.CourseStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@NoArgsConstructor
 @Entity
 @Table(name = "course")
+@EqualsAndHashCode(exclude = "sections")
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,8 +32,9 @@ public class Course {
     @Column(name = "published_date")
     private LocalDate publishedDate;
 
-    @ManyToMany(mappedBy = "courses")
-    private Set<User> subscribers = new HashSet<>();
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Set<CourseSection> sections = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
@@ -35,5 +42,12 @@ public class Course {
             joinColumns = @JoinColumn(name = "course_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    private Set<Tag> tags  = new HashSet<>();
+    private Set<Tag> tags = new HashSet<>();
+
+    @ManyToMany(mappedBy = "courses")
+    private Set<User> subscribers = new HashSet<>();
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private CourseStatus status;
 }
