@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CourseSectionRepository extends JpaRepository<CourseSection, Integer> {
+
+    void deleteAllByCourseCourseId(int courseId);
 }

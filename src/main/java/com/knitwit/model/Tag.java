@@ -1,5 +1,6 @@
 package com.knitwit.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -19,5 +20,6 @@ public class Tag {
     private String tagName;
 
     @ManyToMany(mappedBy = "tags")
+    @JsonBackReference
     private Set<Course> courses = new HashSet<>();
 }

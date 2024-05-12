@@ -8,14 +8,16 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @Entity
 @Table(name = "course")
-@EqualsAndHashCode(exclude = "sections")
+@EqualsAndHashCode(exclude = {"sections", "tags", "subscribers"})
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,9 +36,9 @@ public class Course {
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private Set<CourseSection> sections = new HashSet<>();
+    private List<CourseSection> sections = new ArrayList<>();
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "course_tag",
             joinColumns = @JoinColumn(name = "course_id"),
@@ -44,7 +46,7 @@ public class Course {
     )
     private Set<Tag> tags = new HashSet<>();
 
-    @ManyToMany(mappedBy = "courses")
+    @ManyToMany(mappedBy = "courses", cascade = CascadeType.ALL)
     private Set<User> subscribers = new HashSet<>();
 
     @Column(name = "status")

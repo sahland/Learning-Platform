@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -18,7 +19,7 @@ public class TagController {
     @Operation(summary = "Создание тега")
     @PostMapping("/create")
     public ResponseEntity<Tag> createTag(@RequestBody Tag tag) {
-        Tag createdTag = tagService.createTags(tag);
+        Tag createdTag = tagService.createTag(tag);
         return ResponseEntity.ok(createdTag);
     }
 
@@ -26,14 +27,14 @@ public class TagController {
     @DeleteMapping("/{tagId}")
     public ResponseEntity<?> deleteTag(@PathVariable int tagId) {
         tagService.deleteTag(tagId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Редактирование тега")
     @PutMapping("/{tagId}")
     public ResponseEntity<Tag> updateTag(@PathVariable int tagId, @RequestBody Tag updatedTag) {
-        Tag updated = tagService.updateTag(tagId, updatedTag);
-        return ResponseEntity.ok(updated);
+        Tag tag = tagService.updateTag(tagId, updatedTag);
+        return ResponseEntity.ok(tag);
     }
 
     @Operation(summary = "Получение списка всех тегов")

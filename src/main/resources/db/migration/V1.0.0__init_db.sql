@@ -1,5 +1,3 @@
-CREATE TYPE RATING_VALUE AS ENUM ('1', '2', '3', '4', '5');
-
 CREATE TABLE media_file
 (
     file_id    SERIAL PRIMARY KEY,
@@ -39,7 +37,7 @@ CREATE TABLE course
     course_id      SERIAL PRIMARY KEY,
     creator_id     INTEGER REFERENCES users (user_id),
     title          VARCHAR(255),
-    published_date DATE         DEFAULT CURRENT_DATE,
+    published_date DATE        DEFAULT CURRENT_DATE,
     status         VARCHAR(20) DEFAULT 'IN_PROCESSING'
 );
 
@@ -64,7 +62,7 @@ CREATE TABLE course_rating
     rating_id SERIAL PRIMARY KEY,
     user_id   INTEGER REFERENCES users (user_id)    NOT NULL,
     course_id INTEGER REFERENCES course (course_id) NOT NULL,
-    value     RATING_VALUE                          NOT NULL
+    value     INTEGER                           NOT NULL
 );
 
 CREATE TABLE tag

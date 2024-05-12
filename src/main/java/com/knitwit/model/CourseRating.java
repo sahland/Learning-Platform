@@ -1,6 +1,6 @@
 package com.knitwit.model;
 
-import com.knitwit.enums.RatingValue;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,14 +14,15 @@ public class CourseRating {
     private int ratingId;
 
     @ManyToOne
+    @JsonIgnoreProperties({"avatarFileId", "learningProgresses"})
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
     @ManyToOne
+    @JsonIgnoreProperties({"title", "creator", "sections", "subscribers", "tags", "publishedDate", "status"})
     @JoinColumn(name = "course_id", referencedColumnName = "course_id")
     private Course course;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "value")
-    private RatingValue value;
+    private int value;
 }

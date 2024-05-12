@@ -22,22 +22,13 @@ INSERT INTO tag (tag_name)
 SELECT substr(md5(random()::text), 1, 10)
 FROM generate_series(1, 100);
 
--- Вставка данных в таблицу course_section
+-- Вставка данных в таблицу course
 INSERT INTO course (creator_id, title, published_date)
 SELECT user_id,
        'Course ' || gs.id,
        CURRENT_DATE - INTERVAL '7 days' * (random() * 30)::int
 FROM (SELECT generate_series(1, 100) AS id) AS gs
          CROSS JOIN (SELECT user_id FROM users ORDER BY random() LIMIT 100) AS u
-ORDER BY random()
-LIMIT 100;
-
--- Вставка данных в таблицу course
-INSERT INTO course_section (course_id, content, section_number)
-SELECT course_id,
-       md5(random()::text),
-       row_number() over (partition by course_id order by random())
-FROM course
 ORDER BY random()
 LIMIT 100;
 
@@ -83,15 +74,27 @@ WHERE (nu.user_row_number, nc.course_row_number) IN (SELECT user_row_number,
 ORDER BY random()
 LIMIT 100;
 
--- Вставка данных в таблицу course_rating
+-- Вставка данных в таблицу course_section
+INSERT INTO course_section (course_id, content, section_number)
+SELECT course_id,
+       md5(random()::text),
+       floor(random() * 10 + 1)
+FROM course
+         CROSS JOIN generate_series(1, 10) as s
+ORDER BY random()
+LIMIT 100;
+
+-- Генерация случайных оценок для 100 строк таблицы course_rating
 INSERT INTO course_rating (user_id, course_id, value)
-SELECT (SELECT user_id FROM users ORDER BY random() LIMIT 1),
-       (SELECT course_id FROM course ORDER BY random() LIMIT 1),
-       (SELECT value
-        FROM (SELECT unnest(ARRAY ['1', '2', '3', '4', '5']::RATING_VALUE[]) AS value
-              ORDER BY random()
-              LIMIT 1) AS random_value)
-FROM generate_series(1, 100);
+SELECT
+    u.user_id,
+    c.course_id,
+    FLOOR(RANDOM() * 5) + 1
+FROM
+    (SELECT user_id FROM users ORDER BY RANDOM() LIMIT 100) AS u
+        CROSS JOIN LATERAL
+        (SELECT course_id FROM course ORDER BY RANDOM() LIMIT floor(random() * (SELECT COUNT(*) FROM course)) + 1) AS c
+LIMIT 100;
 
 -- Вставка данных в таблицу course_section_media_file
 INSERT INTO course_section_media_file (section_id, file_id)

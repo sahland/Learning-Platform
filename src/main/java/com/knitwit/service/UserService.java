@@ -13,26 +13,22 @@ import java.util.Set;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
-
     @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private UserRepository userRepository;
 
-    // Создание пользователя
     @Transactional
     public User createUser(User user) {
         return userRepository.save(user);
     }
 
-    // Удаление пользователя
-    @Transactional
-    public void deleteUser(int userId) {
-        userRepository.deleteById(userId);
+    public Iterable<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
-    // Редактирование пользователя
+    public User getUserById(int userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+    }
     @Transactional
     public User updateUser(int userId, User updatedUser) {
         Optional<User> optionalUser = userRepository.findById(userId);
@@ -44,18 +40,6 @@ public class UserService {
         }
     }
 
-    // Получение списка всех пользователей
-    public Iterable<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    // Получение пользователя по его идентификатору
-    public User getUserById(int userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
-    }
-
-    //получение всех курсов, на которые подписан пользователь
     public Set<Course> getAllSubscribedCourses(User user) {
         return user.getCourses();
     }

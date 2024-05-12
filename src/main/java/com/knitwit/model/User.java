@@ -1,5 +1,6 @@
 package com.knitwit.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,7 @@ public class User {
     private int avatarFileId;
 
     @ManyToMany
+    @JsonBackReference
     @JoinTable(
             name = "course_subscription",
             joinColumns = @JoinColumn(name = "user_id"),

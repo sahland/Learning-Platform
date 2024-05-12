@@ -23,20 +23,6 @@ public class UserController {
         return ResponseEntity.ok(createdUser);
     }
 
-    @Operation(summary = "Удаление пользователя по его ID")
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable int userId) {
-        userService.deleteUser(userId);
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "Редактирование пользователя")
-    @PutMapping("/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable int userId, @RequestBody User updatedUser) {
-        User updated = userService.updateUser(userId, updatedUser);
-        return ResponseEntity.ok(updated);
-    }
-
     @Operation(summary = "Получение списка всех пользователей")
     @GetMapping
     public ResponseEntity<Iterable<User>> getAllUsers() {
@@ -49,6 +35,13 @@ public class UserController {
     public ResponseEntity<User> getUserById(@PathVariable int userId) {
         User user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
+    }
+
+    @Operation(summary = "Редактирование пользователя")
+    @PutMapping("/{userId}")
+    public ResponseEntity<User> updateUser(@PathVariable int userId, @RequestBody User updatedUser) {
+        User updated = userService.updateUser(userId, updatedUser);
+        return ResponseEntity.ok(updated);
     }
 
     @Operation(summary = "Получение всех курсов, на которые подписан пользователь")

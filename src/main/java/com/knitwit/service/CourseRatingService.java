@@ -1,66 +1,70 @@
 package com.knitwit.service;
 
-import com.knitwit.enums.RatingValue;
-import com.knitwit.model.Course;
 import com.knitwit.model.CourseRating;
 import com.knitwit.repository.CourseRatingRepository;
+import com.knitwit.repository.CourseRepository;
+import com.knitwit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 public class CourseRatingService {
-
-    private final CourseRatingRepository courseRatingRepository;
-
     @Autowired
-    public CourseRatingService(CourseRatingRepository courseRatingRepository) {
-        this.courseRatingRepository = courseRatingRepository;
-    }
+    private CourseRatingRepository courseRatingRepository;
+    @Autowired
+    CourseRepository courseRepository;
+    @Autowired
+    UserRepository userRepository;
 
-    // Создание рейтинга курса
     @Transactional
-    public CourseRating createCourseRating(CourseRating courseRating) {
-        return courseRatingRepository.save(courseRating);
-    }
-
-    // Удаление рейтинга курса
-    @Transactional
-    public void deleteCourseRating(int ratingId) {
-        courseRatingRepository.deleteById(ratingId);
-    }
-
-    // Редактирование рейтинга курса
-    @Transactional
-    public CourseRating updateCourseRating(int ratingId, CourseRating updatedCourseRating) {
-        Optional<CourseRating> optionalCourseRating = courseRatingRepository.findById(ratingId);
-        if (optionalCourseRating.isPresent()) {
-            updatedCourseRating.setRatingId(ratingId);
-            return courseRatingRepository.save(updatedCourseRating);
+    public CourseRating rateCourse(int courseId, int userId, int value) {
+        if (value < 1 || value > 5) {
+            throw new IllegalArgumentException("Rating value must be between 1 and 5.");
+        }
+        CourseRating existingRating = courseRatingRepository.findCourseRatingByCourseCourseIdAndUserUserId(courseId, userId);
+        if (existingRating != null) {
+            existingRating.setValue(value);
+            return courseRatingRepository.save(existingRating);
         } else {
-            throw new IllegalArgumentException("Course rating not found with id: " + ratingId);
+            CourseRating newRating = new CourseRating();
+            newRating.setCourse(courseRepository.getById(courseId));
+            newRating.setUser(userRepository.getById(userId));
+            newRating.setValue(value);
+            return courseRatingRepository.save(newRating);
         }
     }
 
-    // Получение рейтинга курса по его идентификатору
-    public CourseRating getCourseRatingById(int ratingId) {
-        return courseRatingRepository.findById(ratingId)
-                .orElseThrow(() -> new IllegalArgumentException("Course rating not found with id: " + ratingId));
+    @Transactional
+    public boolean deleteRating(int courseId, int userId) {
+        CourseRating rating = courseRatingRepository.findCourseRatingByCourseCourseIdAndUserUserId(courseId, userId);
+        if (rating != null) {
+            courseRatingRepository.delete(rating);
+            return true;
+        }
+        return false;
     }
 
-    // Получение количества всех оценок у курса
-    public int countByCourse(int courseId) {
-        Course course = new Course();
-        course.setCourseId(courseId);
-        return courseRatingRepository.countByCourse(course);
+    @Transactional
+    public List<CourseRating> getUserRatings(int userId) {
+        return courseRatingRepository.findByUserUserId(userId);
     }
 
-    // Получение количества определенных оценок у курса
-    public int countByCourseAndValue(int courseId, RatingValue value) {
-        Course course = new Course();
-        course.setCourseId(courseId);
-        return courseRatingRepository.countByCourseAndValue(course, value);
+    @Transactional
+    public List<CourseRating> getCourseRatings(int courseId) {
+        return courseRatingRepository.findByCourseCourseId(courseId);
+    }
+
+    @Transactional
+    public Double getAverageRating(int courseId) {
+        List<CourseRating> ratings = courseRatingRepository.findByCourseCourseId(courseId);
+        if (ratings.isEmpty()) {
+            return null;
+        }
+        double sum = ratings.stream().mapToDouble(CourseRating::getValue).sum();
+        double average = sum / ratings.size();
+        return Math.round(average * 10.0) / 10.0;
     }
 }

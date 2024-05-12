@@ -10,6 +10,8 @@ import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.TagRepository;
 import com.knitwit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -38,43 +40,31 @@ public class CourseService {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
-    public Course createCourseWithSection(Course course, CourseSection section) {
-        if (section == null) {
+    @Transactional
+    public Course createCourseWithSections(Course course, List<CourseSection> sections) {
+        if (sections == null || sections.isEmpty()) {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
-
-        // Создаем транзакцию
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         TransactionStatus status = transactionManager.getTransaction(def);
-
         try {
-            section.setCourse(course); // Устанавливаем связь с курсом
-            course.getSections().add(section); // Добавляем секцию к курсу
-            Course savedCourse = courseRepository.save(course); // Сохраняем курс с секцией
-            transactionManager.commit(status); // Фиксируем транзакцию
+            setSectionNumbersAndCourse(sections, course);
+            course.setStatus(CourseStatus.IN_PROCESSING);
+            Course savedCourse = courseRepository.save(course);
+            transactionManager.commit(status);
             return savedCourse;
         } catch (Exception ex) {
-            transactionManager.rollback(status); // Откатываем транзакцию в случае ошибки
-            throw ex; // Перебрасываем исключение
+            transactionManager.rollback(status);
+            throw ex;
         }
-    }
-
-    public CourseSection addSectionToCourse(int courseId, CourseSection section) {
-        Course course = courseRepository.findById(courseId).orElse(null);
-        section.setCourse(course);
-        course.getSections().add(section);
-        courseRepository.save(course);
-        return section;
     }
 
     @Transactional
-    public void deleteCourse(int courseId) {
-        if (!courseRepository.existsById(courseId)) {
-            throw new IllegalArgumentException("Курс с указанным ID не найден: " + courseId);
-        }
-        courseRepository.deleteById(courseId);
+    public List<Course> getAllCourses() {
+        return courseRepository.findAll();
     }
 
+    @Transactional
     public Course getCourseById(int courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
@@ -89,32 +79,144 @@ public class CourseService {
             if (publish) {
                 updatedCourse.setStatus(CourseStatus.PUBLISHED);
             } else {
-                updatedCourse.setStatus(course.getStatus()); // сохраняем текущий статус
+                updatedCourse.setStatus(course.getStatus());
             }
-            return courseRepository.save(updatedCourse);
+            course.setTitle(updatedCourse.getTitle());
+            course.setPublishedDate(updatedCourse.getPublishedDate());
+            updateSections(course, updatedCourse.getSections()); // Обновление секций курса
+
+            return courseRepository.save(course);
         } else {
             throw new IllegalArgumentException("Course not found with id: " + courseId);
         }
     }
 
-    public List<Course> getAllCourses() {
-        return courseRepository.findAll();
+    @Transactional
+    public void deleteCourse(int courseId) {
+        Optional<Course> optionalCourse = courseRepository.findById(courseId);
+        if (optionalCourse.isPresent()) {
+            courseRepository.deleteById(courseId);
+        } else {
+            throw new IllegalArgumentException("Курс с указанным ID не найден: " + courseId);
+        }
     }
 
-    public List<Course> getCoursesByIds(List<Integer> courseIds) {
-        return courseRepository.findAllByCourseIdIn(courseIds);
-    }
-
+    @Transactional
     public long countAllCourses() {
         return courseRepository.count();
     }
 
+    @Transactional
     public List<Course> getCoursesCreatedByUser(int userId) {
         return courseRepository.findByCreatorUserId(userId);
     }
 
+    @Transactional
     public List<Course> searchCoursesByTitle(String keyword) {
         return courseRepository.findByTitleContaining(keyword);
+    }
+
+    private void setSectionNumbersAndCourse(List<CourseSection> sections, Course course) {
+        int sectionNumber = 1;
+        for (CourseSection section : sections) {
+            section.setCourse(course);
+            section.setSectionNumber(sectionNumber++);
+            course.getSections().add(section);
+        }
+    }
+
+
+    private void updateSections(Course course, List<CourseSection> updatedSections) {
+        courseSectionRepository.deleteAllByCourseCourseId(course.getCourseId());
+        course.getSections().clear();
+        int sectionNumber = 1;
+        for (CourseSection section : updatedSections) {
+            CourseSection newSection = new CourseSection();
+            newSection.setContent(section.getContent());
+            newSection.setSectionNumber(sectionNumber++);
+            newSection.setCourse(course);
+            course.getSections().add(newSection);
+        }
+    }
+
+    @Transactional
+    public List<CourseSection> getAllSectionsByCourseId(int courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
+        List<CourseSection> sections = course.getSections();
+        return sections;
+    }
+
+    @Transactional
+    public List<CourseSection> addSectionsToCourse(int courseId, List<CourseSection> sections) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
+
+        int lastSectionNumber = course.getSections().stream()
+                .mapToInt(CourseSection::getSectionNumber)
+                .max()
+                .orElse(0);
+        for (CourseSection section : sections) {
+            section.setCourse(course);
+            section.setSectionNumber(++lastSectionNumber);
+            course.getSections().add(section);
+        }
+        courseRepository.save(course);
+        return sections;
+    }
+
+    @Transactional
+    public void confirmCourse(int courseId) {
+        Course course = getCourseById(courseId);
+        course.setStatus(CourseStatus.PUBLISHED);
+        courseRepository.save(course);
+    }
+
+    @Transactional
+    public void rejectCourse(int courseId) {
+        Course course = getCourseById(courseId);
+        course.setStatus(CourseStatus.CANCELED);
+        courseRepository.save(course);
+    }
+
+    @Transactional
+    public List<Course> getAllCoursesByStatus(CourseStatus status) {
+        return courseRepository.findAllByStatus(status);
+    }
+
+    @Transactional
+    public Page<Course> getAllCoursesByStatusWithPagination(CourseStatus status, Pageable pageable) {
+        return courseRepository.findAllByStatus(status, pageable);
+    }
+
+    @Transactional
+    public List<Course> getAllRejectedCourses() {
+        return getAllCoursesByStatus(CourseStatus.CANCELED);
+    }
+
+    @Transactional
+    public List<Course> getAllCoursesInProcessing() {
+        return getAllCoursesByStatus(CourseStatus.IN_PROCESSING);
+    }
+
+    @Transactional
+    public List<Course> getAllPublishedCourses() {
+        return getAllCoursesByStatus(CourseStatus.PUBLISHED);
+    }
+
+    @Transactional
+    public Page<Course> getAllRejectedCoursesWithPagination(Pageable pageable) {
+        return getAllCoursesByStatusWithPagination(CourseStatus.CANCELED, pageable);
+    }
+
+    @Transactional
+    public Page<Course> getAllCoursesInProcessingWithPagination(Pageable pageable) {
+        return getAllCoursesByStatusWithPagination(CourseStatus.IN_PROCESSING, pageable);
+    }
+
+    @Transactional
+    public Page<Course> getAllPublishedCoursesWithPagination(Pageable pageable) {
+        return getAllCoursesByStatusWithPagination(CourseStatus.PUBLISHED, pageable);
     }
 
     @Transactional
@@ -137,12 +239,14 @@ public class CourseService {
         courseRepository.save(course);
     }
 
+    @Transactional
     public Set<Course> getAllCoursesForTag(int tagId) {
         Tag tag = tagRepository.findById(tagId)
                 .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + tagId));
         return tag.getCourses();
     }
 
+    @Transactional
     public Set<Tag> getTagsByCourseId(int courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
