@@ -1,6 +1,7 @@
 package com.knitwit.api.v1.controller;
 
 import com.knitwit.model.CourseSection;
+import com.knitwit.model.MediaFile;
 import com.knitwit.service.CourseSectionService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +18,7 @@ public class CourseSectionController {
     @Autowired
     private CourseSectionService courseSectionService;
 
-    @Operation(summary = "Создание раздела курса")
-    @PostMapping
-    public ResponseEntity<CourseSection> createSection(@RequestBody CourseSection section) {
-        CourseSection createdSection = courseSectionService.createSection(section);
-        return new ResponseEntity<>(createdSection, HttpStatus.CREATED);
-    }
-
+    @Operation(summary = "Получить раздел курса по ID")
     @GetMapping("/{sectionId}")
     public ResponseEntity<CourseSection> getSectionById(@PathVariable int sectionId) {
         CourseSection section = courseSectionService.getSectionById(sectionId);
@@ -34,24 +29,12 @@ public class CourseSectionController {
         }
     }
 
-    @Operation(summary = "Удаление раздела курса")
-    @DeleteMapping("/{sectionId}")
-    public ResponseEntity<Void> deleteCourseSection(@PathVariable int sectionId) {
-        courseSectionService.deleteCourseSection(sectionId);
+    @Operation(summary = "Добавить несколько медиафайлов к секции курса")
+    @PostMapping("/{sectionId}/media")
+    public ResponseEntity<Void> addMediaFilesToCourseSection(@PathVariable int sectionId,
+                                                             @RequestBody List<MediaFile> mediaFiles) {
+        courseSectionService.addMediaFilesToCourseSection(sectionId, mediaFiles);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Редактирование раздела курса")
-    @PutMapping("/{sectionId}")
-    public ResponseEntity<CourseSection> updateCourseSection(@PathVariable int sectionId, @RequestBody CourseSection updatedCourseSection) {
-        CourseSection updatedSection = courseSectionService.updateCourseSection(sectionId, updatedCourseSection);
-        return ResponseEntity.ok(updatedSection);
-    }
-
-    @Operation(summary = "Получение списка всех разделов курса")
-    @GetMapping
-    public ResponseEntity<List<CourseSection>> getAllCourseSections() {
-        List<CourseSection> sections = courseSectionService.getAllCourseSections();
-        return ResponseEntity.ok(sections);
-    }
 }

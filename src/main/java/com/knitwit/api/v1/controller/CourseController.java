@@ -1,8 +1,9 @@
 package com.knitwit.api.v1.controller;
 
-import com.knitwit.api.v1.request.CourseWithSectionsRequest;
+import com.knitwit.api.v1.request.CourseWithSectionsAndTagsRequest;
 import com.knitwit.model.Course;
 import com.knitwit.model.CourseSection;
+import com.knitwit.model.MediaFile;
 import com.knitwit.model.Tag;
 import com.knitwit.service.CourseService;
 import com.knitwit.service.CourseSectionService;
@@ -34,8 +35,8 @@ public class CourseController {
     }
 
     @PostMapping
-    public ResponseEntity<Course> createCourse(@RequestBody CourseWithSectionsRequest request) {
-        Course createdCourse = courseService.createCourseWithSections(request.getCourse(), request.getSections());
+    public ResponseEntity<Course> createCourse(@RequestBody CourseWithSectionsAndTagsRequest request) {
+        Course createdCourse = courseService.createCourseWithSections(request.getCourse(), request.getSections(), request.getTags());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCourse);
     }
 
@@ -103,11 +104,34 @@ public class CourseController {
         return ResponseEntity.ok(sections);
     }
 
+    @Operation(summary = "Добавить секцию к курсу")
     @PostMapping("/{courseId}/sections")
     public ResponseEntity<List<CourseSection>> addSectionsToCourse(@PathVariable int courseId, @RequestBody List<CourseSection> sections) {
         List<CourseSection> addedSections = courseService.addSectionsToCourse(courseId, sections);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(addedSections);
+    }
+
+    @Operation(summary = "Удалить секцию из курса")
+    @DeleteMapping("/{courseId}/sections/{sectionId}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Секция удалена из курса."),
+            @ApiResponse(responseCode = "404", description = "Курс или секция не найдены")
+    })
+    public ResponseEntity<Void> deleteSectionFromCourse(@PathVariable int courseId, @PathVariable int sectionId) {
+        courseService.deleteSectionFromCourse(courseId, sectionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Обновить секцию курса")
+    @PutMapping("/{courseId}/sections/{sectionId}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Секция курса обновлена."),
+            @ApiResponse(responseCode = "404", description = "Курс или секция не найдены")
+    })
+    public ResponseEntity<Void> updateSection(@PathVariable int courseId, @PathVariable int sectionId, @RequestBody CourseSection updatedSection) {
+        courseService.updateSection(courseId, sectionId, updatedSection);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Подтвердить курс по ID")
@@ -172,19 +196,20 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
-    @Operation(summary = "Добавить тег к курсу")
-    @PostMapping("/{courseId}/tags/{tagId}")
-    public ResponseEntity<Void> addTagToCourse(@PathVariable int courseId, @PathVariable int tagId) {
-        courseService.addTagToCourse(courseId, tagId);
+    @Operation(summary = "Добавить теги к курсу")
+    @PostMapping("/{courseId}/tags")
+    public ResponseEntity<Void> addTagsToCourse(@PathVariable int courseId, @RequestBody List<Integer> tagIds) {
+        courseService.addTagsToCourse(courseId, tagIds);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Удалить тег из курса")
-    @DeleteMapping("/{courseId}/tags/{tagId}")
-    public ResponseEntity<Void> deleteTagFromCourse(@PathVariable int courseId, @PathVariable int tagId) {
-        courseService.deleteTagFromCourse(courseId, tagId);
+    @Operation(summary = "Удалить теги из курса")
+    @DeleteMapping("/{courseId}/tags")
+    public ResponseEntity<Void> deleteTagsFromCourse(@PathVariable int courseId, @RequestBody List<Integer> tagIds) {
+        courseService.deleteTagsFromCourse(courseId, tagIds);
         return ResponseEntity.noContent().build();
     }
+
 
     @Operation(summary = "Получить курсы по ID тега")
     @GetMapping("/tags/{tagId}")
@@ -213,4 +238,18 @@ public class CourseController {
         courseService.unsubscribeFromCourse(userId, courseId);
         return ResponseEntity.noContent().build();
     }
+    @Operation(summary = "Добавить аватар курса")
+    @PostMapping("/{courseId}/avatar")
+    public ResponseEntity<Void> addAvatarToCourse(@PathVariable int courseId, @RequestBody MediaFile avatarFile) {
+        courseService.addAvatarToCourse(courseId, avatarFile);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Удалить аватар курса")
+    @DeleteMapping("/{courseId}/avatar")
+    public ResponseEntity<Void> removeAvatarFromCourse(@PathVariable int courseId) {
+        courseService.removeAvatarFromCourse(courseId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

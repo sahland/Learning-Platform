@@ -1,6 +1,7 @@
 package com.knitwit.service;
 
 import com.knitwit.model.Course;
+import com.knitwit.model.MediaFile;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,4 +44,25 @@ public class UserService {
     public Set<Course> getAllSubscribedCourses(User user) {
         return user.getCourses();
     }
+
+    @Transactional
+    public void addAvatarToUser(int userId, MediaFile avatarFile) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь с указанным ID не найден: " + userId));
+        user.setUserAvatar(avatarFile);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void removeAvatarFromUser(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь с указанным ID не найден: " + userId));
+        user.setUserAvatar(null);
+        userRepository.save(user);
+    }
+
+    public Optional<User> findById(int userId) {
+        return userRepository.findById(userId);
+    }
+
 }

@@ -1,5 +1,7 @@
 package com.knitwit.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.knitwit.enums.CourseStatus;
 import jakarta.persistence.*;
@@ -37,6 +39,16 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<CourseSection> sections = new ArrayList<>();
+
+    @OneToOne
+    @JsonIgnoreProperties({"fileSize", "createdAt", "fileKey", "fileType"})
+    @JoinTable(
+            name = "course_avatar",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "file_id")
+    )
+    private MediaFile courseAvatar;
+
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(

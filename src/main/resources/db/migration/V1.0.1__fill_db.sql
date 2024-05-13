@@ -11,11 +11,16 @@ SELECT md5(random()::text),
 FROM generate_series(1, 100);
 
 -- Вставка данных в таблицу users
-INSERT INTO users (avatar_file_id)
-SELECT file_id
-FROM media_file
-ORDER BY random()
-LIMIT 100;
+INSERT INTO users (nickname)
+SELECT substr(md5(random()::text), 1, 10)
+FROM generate_series(1, 100);
+
+-- Вставка данных в таблицу user_avatar
+INSERT INTO user_avatar (user_id, file_id)
+SELECT user_id, file_id
+FROM (SELECT user_id, ROW_NUMBER() OVER () AS row_num FROM users) AS u
+         JOIN (SELECT file_id, ROW_NUMBER() OVER () AS row_num FROM media_file) AS m ON u.row_num = m.row_num;
+
 
 -- Вставка данных в таблицу tag
 INSERT INTO tag (tag_name)
@@ -31,6 +36,13 @@ FROM (SELECT generate_series(1, 100) AS id) AS gs
          CROSS JOIN (SELECT user_id FROM users ORDER BY random() LIMIT 100) AS u
 ORDER BY random()
 LIMIT 100;
+
+-- Вставка данных в таблицу course_avatar
+INSERT INTO course_avatar (course_id, file_id)
+SELECT course_id, file_id
+FROM (SELECT course_id, ROW_NUMBER() OVER () AS row_num FROM course) AS c
+         JOIN (SELECT file_id, ROW_NUMBER() OVER () AS row_num FROM media_file) AS m ON c.row_num = m.row_num;
+
 
 
 -- Вставка данных в таблицу course_tag
@@ -123,16 +135,3 @@ SELECT user_id,
        md5(random()::text),
        md5(random()::text)
 FROM generate_series(1, 100), LATERAL (SELECT user_id FROM users ORDER BY random() LIMIT 1) AS u;
-
--- Вставка данных в таблицу user_notification
-INSERT INTO user_notification (user_id, notification_id, is_read)
-SELECT user_id,
-       notification_id,
-       CASE floor(random() * 2)
-           WHEN 0 THEN FALSE
-           ELSE TRUE
-           END
-FROM (SELECT user_id FROM users) AS u,
-     (SELECT notification_id FROM notification) AS n
-ORDER BY random()
-LIMIT 100;

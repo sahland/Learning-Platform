@@ -1,10 +1,7 @@
 package com.knitwit.service;
 
 import com.knitwit.enums.CourseStatus;
-import com.knitwit.model.Course;
-import com.knitwit.model.CourseSection;
-import com.knitwit.model.Tag;
-import com.knitwit.model.User;
+import com.knitwit.model.*;
 import com.knitwit.repository.CourseRepository;
 import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.TagRepository;
@@ -18,6 +15,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -41,7 +40,7 @@ public class CourseService {
     private PlatformTransactionManager transactionManager;
 
     @Transactional
-    public Course createCourseWithSections(Course course, List<CourseSection> sections) {
+    public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags) {
         if (sections == null || sections.isEmpty()) {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
@@ -50,6 +49,8 @@ public class CourseService {
         try {
             setSectionNumbersAndCourse(sections, course);
             course.setStatus(CourseStatus.IN_PROCESSING);
+            course.setPublishedDate(LocalDate.now());
+            course.setTags(new HashSet<>(tags));
             Course savedCourse = courseRepository.save(course);
             transactionManager.commit(status);
             return savedCourse;
@@ -58,6 +59,7 @@ public class CourseService {
             throw ex;
         }
     }
+
 
     @Transactional
     public List<Course> getAllCourses() {
@@ -159,11 +161,44 @@ public class CourseService {
         for (CourseSection section : sections) {
             section.setCourse(course);
             section.setSectionNumber(++lastSectionNumber);
+            courseSectionRepository.save(section);
             course.getSections().add(section);
         }
         courseRepository.save(course);
         return sections;
     }
+
+    @Transactional
+    public void deleteSectionFromCourse(int courseId, int sectionId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
+
+        CourseSection sectionToDelete = courseSectionRepository.findById(sectionId)
+                .orElseThrow(() -> new IllegalArgumentException("Секция с указанным ID не найдена: " + sectionId));
+        course.getSections().remove(sectionToDelete);
+        courseSectionRepository.delete(sectionToDelete);
+        List<CourseSection> sections = course.getSections();
+        for (int i = 0; i < sections.size(); i++) {
+            CourseSection section = sections.get(i);
+            section.setSectionNumber(i + 1);
+            courseSectionRepository.save(section);
+        }
+    }
+
+    @Transactional
+    public void updateSection(int courseId, int sectionId, CourseSection updatedSection) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
+        CourseSection section = courseSectionRepository.findById(sectionId)
+                .orElseThrow(() -> new IllegalArgumentException("Секция с указанным ID не найдена: " + sectionId));
+        if (section.getCourse().getCourseId() != courseId) {
+            throw new IllegalArgumentException("Секция не принадлежит указанному курсу.");
+        }
+        section.setContent(updatedSection.getContent());
+        courseSectionRepository.save(section);
+    }
+
+
 
     @Transactional
     public void confirmCourse(int courseId) {
@@ -220,22 +255,20 @@ public class CourseService {
     }
 
     @Transactional
-    public void addTagToCourse(int courseId, int tagId) {
+    public void addTagsToCourse(int courseId, List<Integer> tagIds) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
-        Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + tagId));
-        course.getTags().add(tag);
+        List<Tag> tags = tagRepository.findAllById(tagIds);
+        course.getTags().addAll(tags);
         courseRepository.save(course);
     }
 
     @Transactional
-    public void deleteTagFromCourse(int courseId, int tagId) {
+    public void deleteTagsFromCourse(int courseId, List<Integer> tagIds) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
-        Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + tagId));
-        course.getTags().remove(tag);
+        List<Tag> tags = tagRepository.findAllById(tagIds);
+        course.getTags().removeAll(tags);
         courseRepository.save(course);
     }
 
@@ -282,4 +315,25 @@ public class CourseService {
         user.getCourses().remove(course);
         course.getSubscribers().remove(user);
     }
+    @Transactional
+    public void addAvatarToCourse(int courseId, MediaFile avatarFile) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
+        course.setCourseAvatar(avatarFile);
+        courseRepository.save(course);
+    }
+
+    @Transactional
+    public void removeAvatarFromCourse(int courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
+        course.setCourseAvatar(null);
+        courseRepository.save(course);
+    }
+
+    @Transactional
+    public int getSectionCountByCourseId(int courseId) {
+        return courseSectionRepository.countByCourseCourseId(courseId);
+    }
+
 }

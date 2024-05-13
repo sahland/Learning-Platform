@@ -15,10 +15,10 @@ public class NotificationController {
     @Autowired
     private NotificationService notificationService;
 
-    @Operation(summary = "Сохранение уведомления")
+    @Operation(summary = "Добавление уведомления")
     @PostMapping("/save")
-    public ResponseEntity<Notification> saveNotification(@RequestBody Notification notification) {
-        Notification savedNotification = notificationService.saveNotification(notification);
+    public ResponseEntity<Notification> createNotification(@RequestBody Notification notification) {
+        Notification savedNotification = notificationService.createNotification(notification);
         return ResponseEntity.ok(savedNotification);
     }
 

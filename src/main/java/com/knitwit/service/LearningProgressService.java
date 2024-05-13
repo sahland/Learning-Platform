@@ -1,29 +1,77 @@
 package com.knitwit.service;
 
+import com.knitwit.model.CourseSection;
 import com.knitwit.model.LearningProgress;
+import com.knitwit.model.User;
+import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.LearningProgressRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LearningProgressService {
 
-    private final LearningProgressRepository learningProgressRepository;
-
     @Autowired
-    public LearningProgressService(LearningProgressRepository learningProgressRepository) {
-        this.learningProgressRepository = learningProgressRepository;
+    private LearningProgressRepository learningProgressRepository;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private CourseSectionService courseSectionService;
+    @Autowired
+    CourseSectionRepository courseSectionRepository;
+
+    public void markSectionAsCompleted(int userId, int sectionId) {
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+        CourseSection section = courseSectionService.findById(sectionId)
+                .orElseThrow(() -> new IllegalArgumentException("Course section not found with id: " + sectionId));
+
+        Optional<LearningProgress> optionalLearningProgress = learningProgressRepository.findByUserUserIdAndSectionSectionId(userId, sectionId);
+        if (optionalLearningProgress.isPresent()) {
+            LearningProgress learningProgress = optionalLearningProgress.get();
+            learningProgress.setCompleted(true);
+            learningProgressRepository.save(learningProgress);
+        } else {
+            LearningProgress newLearningProgress = new LearningProgress();
+            newLearningProgress.setUser(user);
+            newLearningProgress.setSection(section);
+            newLearningProgress.setCompleted(true);
+            learningProgressRepository.save(newLearningProgress);
+        }
     }
 
-    // Получение списка записей о прогрессе для конкретного пользователя и курса
-    public List<LearningProgress> getUserLearningProgressByUserIdAndCourseId(int userId, int courseId) {
-        return learningProgressRepository.findByUserUserIdAndSectionCourseCourseId(userId, courseId);
+    public void markSectionAsIncomplete(int userId, int sectionId) {
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+        CourseSection section = courseSectionService.findById(sectionId)
+                .orElseThrow(() -> new IllegalArgumentException("Course section not found with id: " + sectionId));
+
+        Optional<LearningProgress> optionalLearningProgress = learningProgressRepository.findByUserUserIdAndSectionSectionId(userId, sectionId);
+        if (optionalLearningProgress.isPresent()) {
+            LearningProgress learningProgress = optionalLearningProgress.get();
+            learningProgress.setCompleted(false);
+            learningProgressRepository.save(learningProgress);
+        } else {
+            LearningProgress newLearningProgress = new LearningProgress();
+            newLearningProgress.setUser(user);
+            newLearningProgress.setSection(section);
+            newLearningProgress.setCompleted(false);
+            learningProgressRepository.save(newLearningProgress);
+        }
     }
 
-    // Сохранение или обновление записи о прогрессе
-    public LearningProgress saveLearningProgress(LearningProgress learningProgress) {
-        return learningProgressRepository.save(learningProgress);
+    public int getCompletionPercentageForUserAndCourse(int userId, int courseId) {
+        long totalSections = courseSectionRepository.countByCourseCourseId(courseId);
+        long completedSections = learningProgressRepository.countByUserUserIdAndSectionCourseCourseIdAndCompletedTrue(userId, courseId);
+
+        if (totalSections == 0) {
+            return 0;
+        }
+        return (int) Math.round(((double) completedSections / totalSections) * 100);
     }
+
 }
+

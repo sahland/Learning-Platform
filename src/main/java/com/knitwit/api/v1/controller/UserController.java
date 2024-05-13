@@ -1,6 +1,7 @@
 package com.knitwit.api.v1.controller;
 
 import com.knitwit.model.Course;
+import com.knitwit.model.MediaFile;
 import com.knitwit.model.User;
 import com.knitwit.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,4 +52,19 @@ public class UserController {
         Set<Course> subscribedCourses = userService.getAllSubscribedCourses(user);
         return ResponseEntity.ok(subscribedCourses);
     }
+
+    @Operation(summary = "Добавить аватар пользователю")
+    @PostMapping("/{userId}/avatar")
+    public ResponseEntity<Void> addAvatarToUser(@PathVariable int userId, @RequestBody MediaFile avatarFile) {
+        userService.addAvatarToUser(userId, avatarFile);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Удалить аватар пользователя")
+    @DeleteMapping("/{userId}/avatar")
+    public ResponseEntity<Void> removeAvatarFromUser(@PathVariable int userId) {
+        userService.removeAvatarFromUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

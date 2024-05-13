@@ -10,9 +10,14 @@ CREATE TABLE media_file
 
 CREATE TABLE users
 (
-    user_id        SERIAL PRIMARY KEY,
-    avatar_file_id INTEGER REFERENCES media_file (file_id),
-    nickname       VARCHAR(25) NOT NULL
+    user_id  SERIAL PRIMARY KEY,
+    nickname VARCHAR(25) NOT NULL
+);
+
+CREATE TABLE user_avatar
+(
+    user_id        INTEGER REFERENCES users (user_id) PRIMARY KEY,
+    file_id INTEGER REFERENCES media_file (file_id)
 );
 
 CREATE TABLE notification
@@ -24,14 +29,6 @@ CREATE TABLE notification
     created_at      TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE user_notification
-(
-    user_notification_id SERIAL PRIMARY KEY,
-    user_id              INTEGER REFERENCES users (user_id)                NOT NULL,
-    notification_id      INTEGER REFERENCES notification (notification_id) NOT NULL,
-    is_read              BOOLEAN DEFAULT FALSE
-);
-
 CREATE TABLE course
 (
     course_id      SERIAL PRIMARY KEY,
@@ -39,6 +36,12 @@ CREATE TABLE course
     title          VARCHAR(255),
     published_date DATE        DEFAULT CURRENT_DATE,
     status         VARCHAR(20) DEFAULT 'IN_PROCESSING'
+);
+
+CREATE TABLE course_avatar
+(
+    course_id        INTEGER REFERENCES course (course_id) PRIMARY KEY,
+    file_id INTEGER REFERENCES media_file (file_id)
 );
 
 CREATE TABLE course_section
@@ -62,7 +65,7 @@ CREATE TABLE course_rating
     rating_id SERIAL PRIMARY KEY,
     user_id   INTEGER REFERENCES users (user_id)    NOT NULL,
     course_id INTEGER REFERENCES course (course_id) NOT NULL,
-    value     INTEGER                           NOT NULL
+    value     INTEGER                               NOT NULL
 );
 
 CREATE TABLE tag
@@ -92,7 +95,6 @@ CREATE TABLE course_tag
     tag_id        INTEGER REFERENCES tag (tag_id)       NOT NULL
 );
 
--- Создание функции для обновления никнейма
 CREATE OR REPLACE FUNCTION update_nickname()
     RETURNS TRIGGER AS
 $$

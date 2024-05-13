@@ -16,9 +16,8 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 
     List<Course> findByCreatorUserId(int userId);
 
-    List<Course> findAllByCourseIdIn(List<Integer> courseIds);
-
     List<Course> findAllByStatus(CourseStatus status);
 
     Page<Course> findAllByStatus(CourseStatus status, Pageable pageable);
+
 }
