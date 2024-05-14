@@ -1,52 +1,52 @@
 CREATE TABLE media_file
 (
-    file_id    SERIAL PRIMARY KEY,
+    file_id    SERIAL PRIMARY KEY NOT NULL,
     file_key   VARCHAR(255) NOT NULL,
     file_name  VARCHAR(255) NOT NULL,
     file_size  INTEGER      NOT NULL,
     file_type  VARCHAR(50)  NOT NULL,
-    created_at TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE users
 (
-    user_id  SERIAL PRIMARY KEY,
+    user_id  SERIAL PRIMARY KEY NOT NULL,
     nickname VARCHAR(25) NOT NULL
 );
 
 CREATE TABLE user_avatar
 (
-    user_id        INTEGER REFERENCES users (user_id) PRIMARY KEY,
-    file_id INTEGER REFERENCES media_file (file_id)
+    user_id        INTEGER REFERENCES users (user_id) PRIMARY KEY NOT NULL,
+    file_id INTEGER REFERENCES media_file (file_id) NOT NULL
 );
 
 CREATE TABLE notification
 (
-    notification_id SERIAL PRIMARY KEY,
+    notification_id SERIAL PRIMARY KEY NOT NULL,
     sender_id       INTEGER REFERENCES users (user_id) NOT NULL,
     title           VARCHAR(255)                       NOT NULL,
     message         TEXT                               NOT NULL,
-    created_at      TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP
+    created_at      TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE course
 (
-    course_id      SERIAL PRIMARY KEY,
-    creator_id     INTEGER REFERENCES users (user_id),
-    title          VARCHAR(255),
-    published_date DATE        DEFAULT CURRENT_DATE,
-    status         VARCHAR(20) DEFAULT 'IN_PROCESSING'
+    course_id      SERIAL PRIMARY KEY NOT NULL,
+    creator_id     INTEGER REFERENCES users (user_id) NOT NULL,
+    title          VARCHAR(255) NOT NULL,
+    published_date DATE        DEFAULT CURRENT_DATE NOT NULL,
+    status         VARCHAR(20) DEFAULT 'IN_PROCESSING' NOT NULL
 );
 
 CREATE TABLE course_avatar
 (
-    course_id        INTEGER REFERENCES course (course_id) PRIMARY KEY,
-    file_id INTEGER REFERENCES media_file (file_id)
+    course_id        INTEGER REFERENCES course (course_id) PRIMARY KEY NOT NULL,
+    file_id INTEGER REFERENCES media_file (file_id) NOT NULL
 );
 
 CREATE TABLE course_section
 (
-    section_id     SERIAL PRIMARY KEY,
+    section_id     SERIAL PRIMARY KEY NOT NULL,
     course_id      INTEGER REFERENCES course (course_id) NOT NULL,
     content        TEXT                                  NOT NULL,
     section_number INTEGER                               NOT NULL
@@ -54,15 +54,15 @@ CREATE TABLE course_section
 
 CREATE TABLE learning_progress
 (
-    progress_id  SERIAL PRIMARY KEY,
+    progress_id  SERIAL PRIMARY KEY NOT NULL,
     user_id      INTEGER REFERENCES users (user_id)             NOT NULL,
     section_id   INTEGER REFERENCES course_section (section_id) NOT NULL,
-    is_completed BOOLEAN DEFAULT FALSE
+    is_completed BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 CREATE TABLE course_rating
 (
-    rating_id SERIAL PRIMARY KEY,
+    rating_id SERIAL PRIMARY KEY NOT NULL,
     user_id   INTEGER REFERENCES users (user_id)    NOT NULL,
     course_id INTEGER REFERENCES course (course_id) NOT NULL,
     value     INTEGER                               NOT NULL
@@ -70,27 +70,27 @@ CREATE TABLE course_rating
 
 CREATE TABLE tag
 (
-    tag_id   SERIAL PRIMARY KEY,
+    tag_id   SERIAL PRIMARY KEY NOT NULL,
     tag_name VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE course_section_media_file
 (
-    section_media_id SERIAL PRIMARY KEY,
+    section_media_id SERIAL PRIMARY KEY NOT NULL,
     section_id       INTEGER REFERENCES course_section (section_id) NOT NULL,
     file_id          INTEGER REFERENCES media_file (file_id)        NOT NULL
 );
 
 CREATE TABLE course_subscription
 (
-    subscription_id SERIAL PRIMARY KEY,
+    subscription_id SERIAL PRIMARY KEY NOT NULL,
     user_id         INTEGER REFERENCES users (user_id)    NOT NULL,
     course_id       INTEGER REFERENCES course (course_id) NOT NULL
 );
 
 CREATE TABLE course_tag
 (
-    course_tag_id SERIAL PRIMARY KEY,
+    course_tag_id SERIAL PRIMARY KEY NOT NULL,
     course_id     INTEGER REFERENCES course (course_id) NOT NULL,
     tag_id        INTEGER REFERENCES tag (tag_id)       NOT NULL
 );

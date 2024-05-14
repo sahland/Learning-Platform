@@ -6,7 +6,6 @@ import com.knitwit.model.CourseSection;
 import com.knitwit.model.MediaFile;
 import com.knitwit.model.Tag;
 import com.knitwit.service.CourseService;
-import com.knitwit.service.CourseSectionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -26,14 +25,17 @@ import java.util.Set;
 public class CourseController {
 
     private final CourseService courseService;
-    private final CourseSectionService courseSectionService;
 
     @Autowired
-    public CourseController(CourseService courseService, CourseSectionService courseSectionService) {
+    public CourseController(CourseService courseService) {
         this.courseService = courseService;
-        this.courseSectionService = courseSectionService;
     }
 
+    @Operation(summary = "Создать курс")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Курс создан"),
+            @ApiResponse(responseCode = "400", description = "Неверный запрос")
+    })
     @PostMapping
     public ResponseEntity<Course> createCourse(@RequestBody CourseWithSectionsAndTagsRequest request) {
         Course createdCourse = courseService.createCourseWithSections(request.getCourse(), request.getSections(), request.getTags());
@@ -48,17 +50,21 @@ public class CourseController {
     }
 
     @Operation(summary = "Получить курс по ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Курс найден"),
+            @ApiResponse(responseCode = "404", description = "Курс не найден")
+    })
     @GetMapping("/{courseId}")
     public ResponseEntity<Course> getCourseById(@PathVariable int courseId) {
         Course course = courseService.getCourseById(courseId);
-        if (course != null) {
-            return new ResponseEntity<>(course, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return ResponseEntity.ok(course);
     }
 
     @Operation(summary = "Обновить курс по ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Курс обновлен"),
+            @ApiResponse(responseCode = "404", description = "Курс не найден")
+    })
     @PutMapping("/{courseId}")
     public ResponseEntity<Course> updateCourse(@PathVariable int courseId, @RequestBody Course updatedCourse, @RequestParam(required = false) boolean publish) {
         Course course = courseService.updateCourse(courseId, updatedCourse, publish);
@@ -66,11 +72,11 @@ public class CourseController {
     }
 
     @Operation(summary = "Удалить курс по ID")
-    @DeleteMapping("/{courseId}")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Курс удален."),
+            @ApiResponse(responseCode = "204", description = "Курс удален"),
             @ApiResponse(responseCode = "404", description = "Курс не найден")
     })
+    @DeleteMapping("/{courseId}")
     public ResponseEntity<Void> deleteCourse(@PathVariable int courseId) {
         courseService.deleteCourse(courseId);
         return ResponseEntity.noContent().build();
@@ -105,36 +111,43 @@ public class CourseController {
     }
 
     @Operation(summary = "Добавить секцию к курсу")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Секция добавлена"),
+            @ApiResponse(responseCode = "404", description = "Курс не найден")
+    })
     @PostMapping("/{courseId}/sections")
     public ResponseEntity<List<CourseSection>> addSectionsToCourse(@PathVariable int courseId, @RequestBody List<CourseSection> sections) {
         List<CourseSection> addedSections = courseService.addSectionsToCourse(courseId, sections);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(addedSections);
     }
 
     @Operation(summary = "Удалить секцию из курса")
-    @DeleteMapping("/{courseId}/sections/{sectionId}")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Секция удалена из курса."),
+            @ApiResponse(responseCode = "204", description = "Секция удалена"),
             @ApiResponse(responseCode = "404", description = "Курс или секция не найдены")
     })
+    @DeleteMapping("/{courseId}/sections/{sectionId}")
     public ResponseEntity<Void> deleteSectionFromCourse(@PathVariable int courseId, @PathVariable int sectionId) {
         courseService.deleteSectionFromCourse(courseId, sectionId);
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Обновить секцию курса")
-    @PutMapping("/{courseId}/sections/{sectionId}")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Секция курса обновлена."),
+            @ApiResponse(responseCode = "204", description = "Секция курса обновлена"),
             @ApiResponse(responseCode = "404", description = "Курс или секция не найдены")
     })
+    @PutMapping("/{courseId}/sections/{sectionId}")
     public ResponseEntity<Void> updateSection(@PathVariable int courseId, @PathVariable int sectionId, @RequestBody CourseSection updatedSection) {
         courseService.updateSection(courseId, sectionId, updatedSection);
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Подтвердить курс по ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Курс подтвержден"),
+            @ApiResponse(responseCode = "404", description = "Курс не найден")
+    })
     @PostMapping("/{courseId}/confirm")
     public ResponseEntity<Void> confirmCourse(@PathVariable int courseId) {
         courseService.confirmCourse(courseId);
@@ -142,6 +155,10 @@ public class CourseController {
     }
 
     @Operation(summary = "Отклонить курс по ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Курс отклонен"),
+            @ApiResponse(responseCode = "404", description = "Курс не найден")
+    })
     @PostMapping("/{courseId}/reject")
     public ResponseEntity<Void> rejectCourse(@PathVariable int courseId) {
         courseService.rejectCourse(courseId);
@@ -171,8 +188,7 @@ public class CourseController {
 
     @Operation(summary = "Получить все отклоненные курсы с пагинацией")
     @GetMapping("/rejected/pagination")
-    public ResponseEntity<Page<Course>> getAllRejectedCoursesWithPagination(@RequestParam(defaultValue = "0") int page,
-                                                                            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<Course>> getAllRejectedCoursesWithPagination(@RequestParam int page, @RequestParam int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Course> courses = courseService.getAllRejectedCoursesWithPagination(pageable);
         return ResponseEntity.ok(courses);
@@ -180,8 +196,7 @@ public class CourseController {
 
     @Operation(summary = "Получить все курсы в процессе с пагинацией")
     @GetMapping("/processing/pagination")
-    public ResponseEntity<Page<Course>> getAllCoursesInProcessingWithPagination(@RequestParam(defaultValue = "0") int page,
-                                                                                @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<Course>> getAllCoursesInProcessingWithPagination(@RequestParam int page, @RequestParam int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Course> courses = courseService.getAllCoursesInProcessingWithPagination(pageable);
         return ResponseEntity.ok(courses);
@@ -189,8 +204,7 @@ public class CourseController {
 
     @Operation(summary = "Получить все подтвержденные курсы с пагинацией")
     @GetMapping("/published/pagination")
-    public ResponseEntity<Page<Course>> getAllPublishedCoursesWithPagination(@RequestParam(defaultValue = "0") int page,
-                                                                             @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<Course>> getAllPublishedCoursesWithPagination(@RequestParam int page, @RequestParam int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Course> courses = courseService.getAllPublishedCoursesWithPagination(pageable);
         return ResponseEntity.ok(courses);

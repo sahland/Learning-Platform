@@ -6,6 +6,7 @@ import com.knitwit.repository.CourseRepository;
 import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.TagRepository;
 import com.knitwit.repository.UserRepository;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,44 +22,45 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@Service
-public class CourseService {
+    @Schema(description = "Сервис для работы с курсами")
+    @Service
+    public class CourseService {
 
-    @Autowired
-    private CourseRepository courseRepository;
+        @Autowired
+        private CourseRepository courseRepository;
 
-    @Autowired
-    private TagRepository tagRepository;
+        @Autowired
+        private TagRepository tagRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+        @Autowired
+        private UserRepository userRepository;
 
-    @Autowired
-    private CourseSectionRepository courseSectionRepository;
+        @Autowired
+        private CourseSectionRepository courseSectionRepository;
 
-    @Autowired
-    private PlatformTransactionManager transactionManager;
+        @Autowired
+        private PlatformTransactionManager transactionManager;
 
-    @Transactional
-    public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags) {
-        if (sections == null || sections.isEmpty()) {
-            throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
+        @Transactional
+        public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags) {
+            if (sections == null || sections.isEmpty()) {
+                throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
+            }
+            DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+            TransactionStatus status = transactionManager.getTransaction(def);
+            try {
+                setSectionNumbersAndCourse(sections, course);
+                course.setStatus(CourseStatus.IN_PROCESSING);
+                course.setPublishedDate(LocalDate.now());
+                course.setTags(new HashSet<>(tags));
+                Course savedCourse = courseRepository.save(course);
+                transactionManager.commit(status);
+                return savedCourse;
+            } catch (Exception ex) {
+                transactionManager.rollback(status);
+                throw ex;
+            }
         }
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(def);
-        try {
-            setSectionNumbersAndCourse(sections, course);
-            course.setStatus(CourseStatus.IN_PROCESSING);
-            course.setPublishedDate(LocalDate.now());
-            course.setTags(new HashSet<>(tags));
-            Course savedCourse = courseRepository.save(course);
-            transactionManager.commit(status);
-            return savedCourse;
-        } catch (Exception ex) {
-            transactionManager.rollback(status);
-            throw ex;
-        }
-    }
 
 
     @Transactional

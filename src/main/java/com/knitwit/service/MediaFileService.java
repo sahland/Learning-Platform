@@ -2,12 +2,14 @@ package com.knitwit.service;
 
 import com.knitwit.model.MediaFile;
 import com.knitwit.repository.MediaFileRepository;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+@Schema(description = "Сервис для работы с фалйами")
 @Service
 public class MediaFileService {
 

@@ -2,6 +2,7 @@ package com.knitwit.service;
 
 import com.knitwit.model.Tag;
 import com.knitwit.repository.TagRepository;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Schema(description = "Сервис для работы с тегами")
 @Service
 public class TagService {
 

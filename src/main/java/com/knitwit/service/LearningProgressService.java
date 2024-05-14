@@ -5,12 +5,13 @@ import com.knitwit.model.LearningProgress;
 import com.knitwit.model.User;
 import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.LearningProgressRepository;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
+@Schema(description = "Сервис для работы с прогрессм=ом прохождения пользователем курсов")
 @Service
 public class LearningProgressService {
 

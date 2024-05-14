@@ -4,6 +4,7 @@ import com.knitwit.model.Course;
 import com.knitwit.model.MediaFile;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.Set;
 
+@Schema(description = "Сервис для работы с пользователем")
 @Service
 public class UserService {
 
