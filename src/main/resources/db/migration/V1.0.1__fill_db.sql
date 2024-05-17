@@ -69,15 +69,6 @@ FROM course
 ORDER BY random()
 LIMIT 100;
 
--- Вставка данных в таблицу section_media_keys
-INSERT INTO section_media_keys (section_id, media_key)
-SELECT cs.section_id,
-       'media_' || gs
-FROM (SELECT section_id FROM course_section ORDER BY random() LIMIT 100) AS cs,
-     generate_series(1, 100) AS gs
-ORDER BY random()
-LIMIT 100;
-
 -- Генерация случайных оценок для 100 строк таблицы course_rating
 INSERT INTO course_rating (user_id, course_id, value)
 SELECT u.user_id,

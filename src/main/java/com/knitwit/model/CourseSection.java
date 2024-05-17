@@ -35,10 +35,4 @@ public class CourseSection {
     @Schema(description = "Номер секции курса", example = "1")
     @Column(name = "section_number")
     private Integer sectionNumber;
-
-    @Schema(description = "Ключи медиафайлов раздела")
-    @ElementCollection
-    @CollectionTable(name = "section_media_keys", joinColumns = @JoinColumn(name = "section_id"))
-    @Column(name = "media_key")
-    private List<String> sectionImageKeys  = new ArrayList<>();
 }

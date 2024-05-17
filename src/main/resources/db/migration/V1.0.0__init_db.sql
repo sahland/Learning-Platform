@@ -54,12 +54,6 @@ CREATE TABLE tag
     tag_name VARCHAR(255)       NOT NULL
 );
 
-CREATE TABLE section_media_keys
-(
-    section_id INTEGER REFERENCES course_section (section_id) NOT NULL,
-    media_key  VARCHAR(255)                                   NOT NULL
-);
-
 CREATE TABLE course_subscription
 (
     subscription_id SERIAL PRIMARY KEY                    NOT NULL,
