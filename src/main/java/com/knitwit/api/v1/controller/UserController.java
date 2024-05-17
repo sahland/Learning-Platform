@@ -1,13 +1,16 @@
 package com.knitwit.api.v1.controller;
 
 import com.knitwit.model.Course;
-import com.knitwit.model.MediaFile;
 import com.knitwit.model.User;
 import com.knitwit.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Set;
 
 @RestController
@@ -53,18 +56,17 @@ public class UserController {
         return ResponseEntity.ok(subscribedCourses);
     }
 
-    @Operation(summary = "Добавить аватар пользователю")
     @PostMapping("/{userId}/avatar")
-    public ResponseEntity<Void> addAvatarToUser(@PathVariable int userId, @RequestBody MediaFile avatarFile) {
-        userService.addAvatarToUser(userId, avatarFile);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity <String> uploadUserAvatar(@PathVariable int userId, @RequestParam("file") MultipartFile file) {
+        String avatarUrl = userService.uploadUserAvatar(userId, file);
+        return ResponseEntity.ok(avatarUrl);
     }
 
-    @Operation(summary = "Удалить аватар пользователя")
-    @DeleteMapping("/{userId}/avatar")
-    public ResponseEntity<Void> removeAvatarFromUser(@PathVariable int userId) {
-        userService.removeAvatarFromUser(userId);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/{userId}/avatar")
+    public ResponseEntity <Resource> getUserAvatar(@PathVariable int userId) {
+        Resource avatarResource = userService.getUserAvatar(userId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(avatarResource);
     }
-
 }

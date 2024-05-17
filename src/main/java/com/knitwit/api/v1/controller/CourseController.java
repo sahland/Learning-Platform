@@ -3,19 +3,22 @@ package com.knitwit.api.v1.controller;
 import com.knitwit.api.v1.request.CourseWithSectionsAndTagsRequest;
 import com.knitwit.model.Course;
 import com.knitwit.model.CourseSection;
-import com.knitwit.model.MediaFile;
 import com.knitwit.model.Tag;
+import com.knitwit.service.CourseSectionService;
 import com.knitwit.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -24,12 +27,11 @@ import java.util.Set;
 @RequestMapping("/api/v1/courses")
 public class CourseController {
 
-    private final CourseService courseService;
+    @Autowired
+    private CourseService courseService;
 
     @Autowired
-    public CourseController(CourseService courseService) {
-        this.courseService = courseService;
-    }
+    private CourseSectionService courseSectionService;
 
     @Operation(summary = "Создать курс")
     @ApiResponses(value = {
@@ -252,18 +254,19 @@ public class CourseController {
         courseService.unsubscribeFromCourse(userId, courseId);
         return ResponseEntity.noContent().build();
     }
-    @Operation(summary = "Добавить аватар курса")
+
     @PostMapping("/{courseId}/avatar")
-    public ResponseEntity<Void> addAvatarToCourse(@PathVariable int courseId, @RequestBody MediaFile avatarFile) {
-        courseService.addAvatarToCourse(courseId, avatarFile);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<String> uploadCourseAvatar(@PathVariable int courseId, @RequestParam("file") MultipartFile file) {
+        String avatarUrl = courseService.uploadCourseAvatar(courseId, file);
+        return ResponseEntity.ok(avatarUrl);
     }
 
-    @Operation(summary = "Удалить аватар курса")
-    @DeleteMapping("/{courseId}/avatar")
-    public ResponseEntity<Void> removeAvatarFromCourse(@PathVariable int courseId) {
-        courseService.removeAvatarFromCourse(courseId);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/{courseId}/avatar")
+    public ResponseEntity<Resource> getCourseAvatar(@PathVariable int courseId) {
+        Resource avatarResource = courseService.getCourseAvatar(courseId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(avatarResource);
     }
 
 }

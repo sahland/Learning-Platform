@@ -1,26 +1,7 @@
--- Вставка данных в таблицу media_file
-INSERT INTO media_file (file_key, file_name, file_size, file_type)
-SELECT md5(random()::text),
-       'file_' || generate_series,
-       floor(random() * 10000 + 1),
-       CASE floor(random() * 3)
-           WHEN 0 THEN 'image'
-           WHEN 1 THEN 'video'
-           ELSE 'audio'
-           END
-FROM generate_series(1, 100);
-
 -- Вставка данных в таблицу users
-INSERT INTO users (nickname)
-SELECT substr(md5(random()::text), 1, 10)
+INSERT INTO users (nickname, user_avatar_key)
+SELECT substr(md5(random()::text), 1, 10), 'user_avatar_' || md5(random()::text)
 FROM generate_series(1, 100);
-
--- Вставка данных в таблицу user_avatar
-INSERT INTO user_avatar (user_id, file_id)
-SELECT user_id, file_id
-FROM (SELECT user_id, ROW_NUMBER() OVER () AS row_num FROM users) AS u
-         JOIN (SELECT file_id, ROW_NUMBER() OVER () AS row_num FROM media_file) AS m ON u.row_num = m.row_num;
-
 
 -- Вставка данных в таблицу tag
 INSERT INTO tag (tag_name)
@@ -28,22 +9,16 @@ SELECT substr(md5(random()::text), 1, 10)
 FROM generate_series(1, 100);
 
 -- Вставка данных в таблицу course
-INSERT INTO course (creator_id, title, published_date)
+INSERT INTO course (creator_id, title, published_date, status, course_avatar_key)
 SELECT user_id,
        'Course ' || gs.id,
-       CURRENT_DATE - INTERVAL '7 days' * (random() * 30)::int
+       CURRENT_DATE - INTERVAL '7 days' * (random() * 30)::int,
+       'IN_PROCESSING',
+       'course_avatar_' || gs.id
 FROM (SELECT generate_series(1, 100) AS id) AS gs
          CROSS JOIN (SELECT user_id FROM users ORDER BY random() LIMIT 100) AS u
 ORDER BY random()
 LIMIT 100;
-
--- Вставка данных в таблицу course_avatar
-INSERT INTO course_avatar (course_id, file_id)
-SELECT course_id, file_id
-FROM (SELECT course_id, ROW_NUMBER() OVER () AS row_num FROM course) AS c
-         JOIN (SELECT file_id, ROW_NUMBER() OVER () AS row_num FROM media_file) AS m ON c.row_num = m.row_num;
-
-
 
 -- Вставка данных в таблицу course_tag
 WITH numbered_courses AS (SELECT course_id,
@@ -52,8 +27,7 @@ WITH numbered_courses AS (SELECT course_id,
      numbered_tags AS (SELECT tag_id,
                               ROW_NUMBER() OVER (ORDER BY random()) AS tag_row_number
                        FROM tag)
-INSERT
-INTO course_tag (course_id, tag_id)
+INSERT INTO course_tag (course_id, tag_id)
 SELECT nc.course_id,
        nt.tag_id
 FROM numbered_courses nc
@@ -71,8 +45,7 @@ WITH numbered_users AS (SELECT user_id,
      numbered_courses AS (SELECT course_id,
                                  ROW_NUMBER() OVER (ORDER BY course_id) AS course_row_number
                           FROM course)
-INSERT
-INTO course_subscription (user_id, course_id)
+INSERT INTO course_subscription (user_id, course_id)
 SELECT nu.user_id,
        nc.course_id
 FROM numbered_users nu
@@ -96,25 +69,23 @@ FROM course
 ORDER BY random()
 LIMIT 100;
 
--- Генерация случайных оценок для 100 строк таблицы course_rating
-INSERT INTO course_rating (user_id, course_id, value)
-SELECT
-    u.user_id,
-    c.course_id,
-    FLOOR(RANDOM() * 5) + 1
-FROM
-    (SELECT user_id FROM users ORDER BY RANDOM() LIMIT 100) AS u
-        CROSS JOIN LATERAL
-        (SELECT course_id FROM course ORDER BY RANDOM() LIMIT floor(random() * (SELECT COUNT(*) FROM course)) + 1) AS c
+-- Вставка данных в таблицу section_media_keys
+INSERT INTO section_media_keys (section_id, media_key)
+SELECT cs.section_id,
+       'media_' || gs
+FROM (SELECT section_id FROM course_section ORDER BY random() LIMIT 100) AS cs,
+     generate_series(1, 100) AS gs
+ORDER BY random()
 LIMIT 100;
 
--- Вставка данных в таблицу course_section_media_file
-INSERT INTO course_section_media_file (section_id, file_id)
-SELECT cs.section_id,
-       mf.file_id
-FROM (SELECT section_id FROM course_section ORDER BY random() LIMIT 100) AS cs,
-     (SELECT file_id FROM media_file ORDER BY random() LIMIT 100) AS mf
-ORDER BY random()
+-- Генерация случайных оценок для 100 строк таблицы course_rating
+INSERT INTO course_rating (user_id, course_id, value)
+SELECT u.user_id,
+       c.course_id,
+       FLOOR(RANDOM() * 5) + 1
+FROM (SELECT user_id FROM users ORDER BY RANDOM() LIMIT 100) AS u
+         CROSS JOIN LATERAL
+    (SELECT course_id FROM course ORDER BY RANDOM() LIMIT floor(random() * (SELECT COUNT(*) FROM course)) + 1) AS c
 LIMIT 100;
 
 -- Вставка данных в таблицу learning_progress

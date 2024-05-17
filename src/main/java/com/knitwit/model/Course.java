@@ -1,7 +1,6 @@
 package com.knitwit.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.knitwit.enums.CourseStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -50,14 +49,8 @@ public class Course {
     private List<CourseSection> sections = new ArrayList<>();
 
     @Schema(description = "Иконка курса")
-    @OneToOne
-    @JsonIgnoreProperties({"fileSize", "createdAt", "fileKey", "fileType"})
-    @JoinTable(
-            name = "course_avatar",
-            joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "file_id")
-    )
-    private MediaFile courseAvatar;
+    @Column(name = "course_avatar_key")
+    private String courseAvatarKey;
 
     @Schema(description = "Теги курса")
     @ManyToMany(cascade = CascadeType.ALL)

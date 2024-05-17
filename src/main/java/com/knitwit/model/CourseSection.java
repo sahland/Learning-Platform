@@ -6,9 +6,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Schema(description = "Сущность раздела курса")
 @Data
@@ -37,12 +36,9 @@ public class CourseSection {
     @Column(name = "section_number")
     private Integer sectionNumber;
 
-    @Schema(description = "Файлы, содержащиеся в курсе")
-    @ManyToMany
-    @JoinTable(
-            name = "course_section_media_file",
-            joinColumns = @JoinColumn(name = "section_id"),
-            inverseJoinColumns = @JoinColumn(name = "file_id")
-    )
-    private Set<MediaFile> mediaFiles = new HashSet<>();
+    @Schema(description = "Ключи медиафайлов раздела")
+    @ElementCollection
+    @CollectionTable(name = "section_media_keys", joinColumns = @JoinColumn(name = "section_id"))
+    @Column(name = "media_key")
+    private List<String> sectionImageKeys  = new ArrayList<>();
 }

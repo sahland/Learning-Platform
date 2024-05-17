@@ -7,6 +7,7 @@ import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.TagRepository;
 import com.knitwit.repository.UserRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,52 +16,58 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-    @Schema(description = "Сервис для работы с курсами")
-    @Service
-    public class CourseService {
+@Schema(description = "Сервис для работы с курсами")
+@Service
+public class CourseService {
 
-        @Autowired
-        private CourseRepository courseRepository;
+    @Autowired
+    private CourseRepository courseRepository;
 
-        @Autowired
-        private TagRepository tagRepository;
+    @Autowired
+    private TagRepository tagRepository;
 
-        @Autowired
-        private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-        @Autowired
-        private CourseSectionRepository courseSectionRepository;
+    @Autowired
+    private CourseSectionRepository courseSectionRepository;
 
-        @Autowired
-        private PlatformTransactionManager transactionManager;
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
-        @Transactional
-        public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags) {
-            if (sections == null || sections.isEmpty()) {
-                throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
-            }
-            DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-            TransactionStatus status = transactionManager.getTransaction(def);
-            try {
-                setSectionNumbersAndCourse(sections, course);
-                course.setStatus(CourseStatus.IN_PROCESSING);
-                course.setPublishedDate(LocalDate.now());
-                course.setTags(new HashSet<>(tags));
-                Course savedCourse = courseRepository.save(course);
-                transactionManager.commit(status);
-                return savedCourse;
-            } catch (Exception ex) {
-                transactionManager.rollback(status);
-                throw ex;
-            }
+    @Autowired
+    private MinioService minioService;
+
+    @Transactional
+    public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags) {
+        if (sections == null || sections.isEmpty()) {
+            throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        try {
+            setSectionNumbersAndCourse(sections, course);
+            course.setStatus(CourseStatus.IN_PROCESSING);
+            course.setPublishedDate(LocalDate.now());
+            course.setTags(new HashSet<>(tags));
+            Course savedCourse = courseRepository.save(course);
+            transactionManager.commit(status);
+            return savedCourse;
+        } catch (Exception ex) {
+            transactionManager.rollback(status);
+            throw ex;
+        }
+    }
 
 
     @Transactional
@@ -87,7 +94,7 @@ import java.util.Set;
             }
             course.setTitle(updatedCourse.getTitle());
             course.setPublishedDate(updatedCourse.getPublishedDate());
-            updateSections(course, updatedCourse.getSections()); // Обновление секций курса
+            updateSections(course, updatedCourse.getSections());
 
             return courseRepository.save(course);
         } else {
@@ -199,7 +206,6 @@ import java.util.Set;
         section.setContent(updatedSection.getContent());
         courseSectionRepository.save(section);
     }
-
 
 
     @Transactional
@@ -317,25 +323,39 @@ import java.util.Set;
         user.getCourses().remove(course);
         course.getSubscribers().remove(user);
     }
-    @Transactional
-    public void addAvatarToCourse(int courseId, MediaFile avatarFile) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
-        course.setCourseAvatar(avatarFile);
-        courseRepository.save(course);
-    }
-
-    @Transactional
-    public void removeAvatarFromCourse(int courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
-        course.setCourseAvatar(null);
-        courseRepository.save(course);
-    }
 
     @Transactional
     public int getSectionCountByCourseId(int courseId) {
         return courseSectionRepository.countByCourseCourseId(courseId);
     }
 
+    @Transactional
+    public String uploadCourseAvatar(int courseId, MultipartFile file) {
+        try {
+            String objectName = "course_avatars/course_" + courseId + "_avatar.jpg";
+            Course course = getCourseById(courseId);
+            String previousAvatarKey = course.getCourseAvatarKey();
+            if (previousAvatarKey != null) {
+                minioService.deleteFile(previousAvatarKey);
+            }
+            InputStream inputStream = file.getInputStream();
+            minioService.uploadFile(objectName, inputStream);
+            course.setCourseAvatarKey(objectName);
+            courseRepository.save(course);
+
+            return objectName;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload course avatar", e);
+        }
+    }
+
+    @Transactional
+    public Resource getCourseAvatar(int courseId) {
+        Course course = getCourseById(courseId);
+        if (course == null || course.getCourseAvatarKey() == null) {
+            throw new RuntimeException("Course avatar key is null for course with ID: " + courseId);
+        }
+        String objectName = course.getCourseAvatarKey();
+        return minioService.getFileResource(objectName);
+    }
 }

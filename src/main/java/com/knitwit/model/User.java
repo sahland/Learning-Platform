@@ -1,14 +1,11 @@
 package com.knitwit.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,15 +26,9 @@ public class User {
     @Column(name = "nickname")
     private String nickname;
 
-    @Schema(description = "Аватарка пользователя")
-    @OneToOne
-    @JsonIgnoreProperties({"fileSize", "createdAt", "fileKey", "fileType"})
-    @JoinTable(
-            name = "user_avatar",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "file_id")
-    )
-    private MediaFile userAvatar;
+    @Schema(description = "Ключ аватара пользователя")
+    @Column(name = "user_avatar_key")
+    private String userAvatarKey;
 
     @Schema(description = "Курсы на которые подписан пользователь")
     @ManyToMany

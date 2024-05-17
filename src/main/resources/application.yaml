@@ -20,6 +20,14 @@ spring:
     baselineOnMigrate: true
     locations: classpath:db/migration
 
+minio:
+  url: " http://localhost:9000"
+  username: knitwitadmin
+  password: knitwitadmin
+  bucketName: knitwit
+
+
+
 #  security:
 #    oauth2:
 #      resourceserver:
