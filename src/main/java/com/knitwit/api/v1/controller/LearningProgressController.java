@@ -1,21 +1,19 @@
 package com.knitwit.api.v1.controller;
 
-import com.knitwit.model.LearningProgress;
 import com.knitwit.service.LearningProgressService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/progress")
 public class LearningProgressController {
 
-    @Autowired
-    private LearningProgressService learningProgressService;
+    private final LearningProgressService learningProgressService;
+
+    public LearningProgressController(LearningProgressService learningProgressService) {
+        this.learningProgressService = learningProgressService;
+    }
 
     @Operation(summary = "Отметить раздел как завершенный для пользователя")
     @PostMapping("/{userId}/section/{sectionId}/complete")

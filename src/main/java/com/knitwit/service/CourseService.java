@@ -8,7 +8,6 @@ import com.knitwit.repository.TagRepository;
 import com.knitwit.repository.UserRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.core.io.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,26 +29,24 @@ import java.util.Set;
 @Service
 public class CourseService {
 
-    @Autowired
-    private CourseRepository courseRepository;
+    private final CourseRepository courseRepository;
+    private final TagRepository tagRepository;
+    private final UserRepository userRepository;
+    private final CourseSectionRepository courseSectionRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final MinioService minioService;
 
-    @Autowired
-    private TagRepository tagRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CourseSectionRepository courseSectionRepository;
-
-    @Autowired
-    private PlatformTransactionManager transactionManager;
-
-    @Autowired
-    private MinioService minioService;
+    public CourseService(CourseRepository courseRepository, TagRepository tagRepository, UserRepository userRepository, CourseSectionRepository courseSectionRepository, PlatformTransactionManager transactionManager, MinioService minioService) {
+        this.courseRepository = courseRepository;
+        this.tagRepository = tagRepository;
+        this.userRepository = userRepository;
+        this.courseSectionRepository = courseSectionRepository;
+        this.transactionManager = transactionManager;
+        this.minioService = minioService;
+    }
 
     @Transactional
-    public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags) {
+    public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags, MultipartFile avatarFile) {
         if (sections == null || sections.isEmpty()) {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
@@ -59,8 +56,20 @@ public class CourseService {
             setSectionNumbersAndCourse(sections, course);
             course.setStatus(CourseStatus.IN_PROCESSING);
             course.setPublishedDate(LocalDate.now());
-            course.setTags(new HashSet<>(tags));
             Course savedCourse = courseRepository.save(course);
+            Set<Tag> savedTags = new HashSet<>();
+            for (Tag tag : tags) {
+                Tag existingTag = tagRepository.findByTagName(tag.getTagName());
+                if (existingTag != null) {
+                    savedTags.add(existingTag);
+                } else {
+                    throw new IllegalArgumentException("Тег с названием " + tag.getTagName() + " не найден.");
+                }
+            }
+            savedCourse.setTags(savedTags);
+            if (avatarFile != null && !avatarFile.isEmpty()) {
+                uploadCourseAvatar(savedCourse.getCourseId(), avatarFile);
+            }
             transactionManager.commit(status);
             return savedCourse;
         } catch (Exception ex) {
@@ -69,13 +78,10 @@ public class CourseService {
         }
     }
 
-
-    @Transactional
     public List<Course> getAllCourses() {
         return courseRepository.findAll();
     }
 
-    @Transactional
     public Course getCourseById(int courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
@@ -98,7 +104,7 @@ public class CourseService {
 
             return courseRepository.save(course);
         } else {
-            throw new IllegalArgumentException("Course not found with id: " + courseId);
+            throw new IllegalArgumentException("Курс с указанным ID не найден: " + courseId);
         }
     }
 
@@ -117,7 +123,6 @@ public class CourseService {
         return courseRepository.count();
     }
 
-    @Transactional
     public List<Course> getCoursesCreatedByUser(int userId) {
         return courseRepository.findByCreatorUserId(userId);
     }
@@ -136,7 +141,6 @@ public class CourseService {
         }
     }
 
-
     private void updateSections(Course course, List<CourseSection> updatedSections) {
         courseSectionRepository.deleteAllByCourseCourseId(course.getCourseId());
         course.getSections().clear();
@@ -150,7 +154,6 @@ public class CourseService {
         }
     }
 
-    @Transactional
     public List<CourseSection> getAllSectionsByCourseId(int courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
@@ -222,42 +225,34 @@ public class CourseService {
         courseRepository.save(course);
     }
 
-    @Transactional
     public List<Course> getAllCoursesByStatus(CourseStatus status) {
         return courseRepository.findAllByStatus(status);
     }
 
-    @Transactional
     public Page<Course> getAllCoursesByStatusWithPagination(CourseStatus status, Pageable pageable) {
         return courseRepository.findAllByStatus(status, pageable);
     }
 
-    @Transactional
     public List<Course> getAllRejectedCourses() {
         return getAllCoursesByStatus(CourseStatus.CANCELED);
     }
 
-    @Transactional
     public List<Course> getAllCoursesInProcessing() {
         return getAllCoursesByStatus(CourseStatus.IN_PROCESSING);
     }
 
-    @Transactional
     public List<Course> getAllPublishedCourses() {
         return getAllCoursesByStatus(CourseStatus.PUBLISHED);
     }
 
-    @Transactional
     public Page<Course> getAllRejectedCoursesWithPagination(Pageable pageable) {
         return getAllCoursesByStatusWithPagination(CourseStatus.CANCELED, pageable);
     }
 
-    @Transactional
     public Page<Course> getAllCoursesInProcessingWithPagination(Pageable pageable) {
         return getAllCoursesByStatusWithPagination(CourseStatus.IN_PROCESSING, pageable);
     }
 
-    @Transactional
     public Page<Course> getAllPublishedCoursesWithPagination(Pageable pageable) {
         return getAllCoursesByStatusWithPagination(CourseStatus.PUBLISHED, pageable);
     }
@@ -265,7 +260,7 @@ public class CourseService {
     @Transactional
     public void addTagsToCourse(int courseId, List<Integer> tagIds) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
+                .orElseThrow(() -> new IllegalArgumentException("Курс не найден по ID: " + courseId));
         List<Tag> tags = tagRepository.findAllById(tagIds);
         course.getTags().addAll(tags);
         courseRepository.save(course);
@@ -274,32 +269,30 @@ public class CourseService {
     @Transactional
     public void deleteTagsFromCourse(int courseId, List<Integer> tagIds) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
+                .orElseThrow(() -> new IllegalArgumentException("Курс не найден по ID: " + courseId));
         List<Tag> tags = tagRepository.findAllById(tagIds);
         course.getTags().removeAll(tags);
         courseRepository.save(course);
     }
 
-    @Transactional
     public Set<Course> getAllCoursesForTag(int tagId) {
         Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + tagId));
+                .orElseThrow(() -> new IllegalArgumentException("Тег не найден по ID: " + tagId));
         return tag.getCourses();
     }
 
-    @Transactional
     public Set<Tag> getTagsByCourseId(int courseId) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
+                .orElseThrow(() -> new IllegalArgumentException("Курс не найден по ID: " + courseId));
         return course.getTags();
     }
 
     @Transactional
     public void subscribeToCourse(int userId, int courseId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден по ID: " + userId));
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
+                .orElseThrow(() -> new IllegalArgumentException("Курс не найден по ID: " + courseId));
 
         if (user.getCourses().contains(course)) {
             throw new IllegalArgumentException("Пользователь уже подписан на данный курс.");
@@ -312,9 +305,9 @@ public class CourseService {
     @Transactional
     public void unsubscribeFromCourse(int userId, int courseId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден по ID: " + userId));
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course not found with id: " + courseId));
+                .orElseThrow(() -> new IllegalArgumentException("Курс не найден по ID: " + courseId));
 
         if (!user.getCourses().contains(course)) {
             throw new IllegalArgumentException("Пользователь не подписан на данный курс.");
@@ -324,7 +317,6 @@ public class CourseService {
         course.getSubscribers().remove(user);
     }
 
-    @Transactional
     public int getSectionCountByCourseId(int courseId) {
         return courseSectionRepository.countByCourseCourseId(courseId);
     }
@@ -345,15 +337,14 @@ public class CourseService {
 
             return objectName;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload course avatar", e);
+            throw new RuntimeException("Не удалось загрузить аватар курса", e);
         }
     }
 
-    @Transactional
     public Resource getCourseAvatar(int courseId) {
         Course course = getCourseById(courseId);
         if (course == null || course.getCourseAvatarKey() == null) {
-            throw new RuntimeException("Course avatar key is null for course with ID: " + courseId);
+            throw new RuntimeException("Ключ аватара курса имеет значение null для курса с ID:" + courseId);
         }
         String objectName = course.getCourseAvatarKey();
         return minioService.getFileResource(objectName);

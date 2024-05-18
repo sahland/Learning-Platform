@@ -4,7 +4,6 @@ import com.knitwit.model.Course;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +18,13 @@ import java.util.Set;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final MinioService minioService;
 
-    @Autowired
-    private MinioService minioService;
+    public UserService(UserRepository userRepository, MinioService minioService) {
+        this.userRepository = userRepository;
+        this.minioService = minioService;
+    }
 
     @Transactional
     public User createUser(User user) {
@@ -36,7 +37,7 @@ public class UserService {
 
     public User getUserById(int userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден по id: " + userId));
     }
     @Transactional
     public User updateUser(int userId, User updatedUser) {
@@ -45,7 +46,7 @@ public class UserService {
             updatedUser.setUserId(userId);
             return userRepository.save(updatedUser);
         } else {
-            throw new IllegalArgumentException("User not found with id: " + userId);
+            throw new IllegalArgumentException("Пользователь не найден по ID: " + userId);
         }
     }
 
@@ -72,15 +73,14 @@ public class UserService {
             userRepository.save(user);
             return objectName;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload user avatar", e);
+            throw new RuntimeException("Не удалось загрузить аватар пользователя", e);
         }
     }
 
-    @Transactional
     public Resource getUserAvatar(int userId) {
         User user = getUserById(userId);
         if (user == null || user.getUserAvatarKey() == null) {
-            throw new RuntimeException("User avatar key is null for user with ID: " + userId);
+            throw new RuntimeException("Ключ аватара пользователя имеет значение null для пользователя с ID: " + userId);
         }
         String objectName = user.getUserAvatarKey();
         return minioService.getFileResource(objectName);

@@ -1,16 +1,14 @@
 package com.knitwit.api.v1.controller;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knitwit.api.v1.request.CourseWithSectionsAndTagsRequest;
 import com.knitwit.model.Course;
 import com.knitwit.model.CourseSection;
 import com.knitwit.model.Tag;
-import com.knitwit.service.CourseSectionService;
 import com.knitwit.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.core.io.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -27,20 +26,21 @@ import java.util.Set;
 @RequestMapping("/api/v1/courses")
 public class CourseController {
 
-    @Autowired
-    private CourseService courseService;
+    private final CourseService courseService;
 
-    @Autowired
-    private CourseSectionService courseSectionService;
+    public CourseController(CourseService courseService) {
+        this.courseService = courseService;
+    }
 
     @Operation(summary = "Создать курс")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Курс создан"),
-            @ApiResponse(responseCode = "400", description = "Неверный запрос")
-    })
-    @PostMapping
-    public ResponseEntity<Course> createCourse(@RequestBody CourseWithSectionsAndTagsRequest request) {
-        Course createdCourse = courseService.createCourseWithSections(request.getCourse(), request.getSections(), request.getTags());
+    @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<Course> createCourseWithAvatar(
+            @RequestPart("text") String courseJson,
+            @RequestPart("file") MultipartFile avatar) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        CourseWithSectionsAndTagsRequest request = objectMapper.readValue(courseJson, CourseWithSectionsAndTagsRequest.class);
+        Course createdCourse = courseService.createCourseWithSections(request.getCourse(), request.getSections(), request.getTags(), avatar);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCourse);
     }
 
@@ -52,10 +52,6 @@ public class CourseController {
     }
 
     @Operation(summary = "Получить курс по ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Курс найден"),
-            @ApiResponse(responseCode = "404", description = "Курс не найден")
-    })
     @GetMapping("/{courseId}")
     public ResponseEntity<Course> getCourseById(@PathVariable int courseId) {
         Course course = courseService.getCourseById(courseId);
@@ -63,10 +59,6 @@ public class CourseController {
     }
 
     @Operation(summary = "Обновить курс по ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Курс обновлен"),
-            @ApiResponse(responseCode = "404", description = "Курс не найден")
-    })
     @PutMapping("/{courseId}")
     public ResponseEntity<Course> updateCourse(@PathVariable int courseId, @RequestBody Course updatedCourse, @RequestParam(required = false) boolean publish) {
         Course course = courseService.updateCourse(courseId, updatedCourse, publish);
@@ -74,10 +66,6 @@ public class CourseController {
     }
 
     @Operation(summary = "Удалить курс по ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Курс удален"),
-            @ApiResponse(responseCode = "404", description = "Курс не найден")
-    })
     @DeleteMapping("/{courseId}")
     public ResponseEntity<Void> deleteCourse(@PathVariable int courseId) {
         courseService.deleteCourse(courseId);
@@ -113,10 +101,6 @@ public class CourseController {
     }
 
     @Operation(summary = "Добавить секцию к курсу")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Секция добавлена"),
-            @ApiResponse(responseCode = "404", description = "Курс не найден")
-    })
     @PostMapping("/{courseId}/sections")
     public ResponseEntity<List<CourseSection>> addSectionsToCourse(@PathVariable int courseId, @RequestBody List<CourseSection> sections) {
         List<CourseSection> addedSections = courseService.addSectionsToCourse(courseId, sections);
@@ -124,10 +108,6 @@ public class CourseController {
     }
 
     @Operation(summary = "Удалить секцию из курса")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Секция удалена"),
-            @ApiResponse(responseCode = "404", description = "Курс или секция не найдены")
-    })
     @DeleteMapping("/{courseId}/sections/{sectionId}")
     public ResponseEntity<Void> deleteSectionFromCourse(@PathVariable int courseId, @PathVariable int sectionId) {
         courseService.deleteSectionFromCourse(courseId, sectionId);
@@ -135,10 +115,6 @@ public class CourseController {
     }
 
     @Operation(summary = "Обновить секцию курса")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Секция курса обновлена"),
-            @ApiResponse(responseCode = "404", description = "Курс или секция не найдены")
-    })
     @PutMapping("/{courseId}/sections/{sectionId}")
     public ResponseEntity<Void> updateSection(@PathVariable int courseId, @PathVariable int sectionId, @RequestBody CourseSection updatedSection) {
         courseService.updateSection(courseId, sectionId, updatedSection);
@@ -146,10 +122,6 @@ public class CourseController {
     }
 
     @Operation(summary = "Подтвердить курс по ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Курс подтвержден"),
-            @ApiResponse(responseCode = "404", description = "Курс не найден")
-    })
     @PostMapping("/{courseId}/confirm")
     public ResponseEntity<Void> confirmCourse(@PathVariable int courseId) {
         courseService.confirmCourse(courseId);
@@ -157,10 +129,6 @@ public class CourseController {
     }
 
     @Operation(summary = "Отклонить курс по ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Курс отклонен"),
-            @ApiResponse(responseCode = "404", description = "Курс не найден")
-    })
     @PostMapping("/{courseId}/reject")
     public ResponseEntity<Void> rejectCourse(@PathVariable int courseId) {
         courseService.rejectCourse(courseId);
@@ -255,12 +223,14 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Добавить аватар курса")
     @PostMapping("/{courseId}/avatar")
     public ResponseEntity<String> uploadCourseAvatar(@PathVariable int courseId, @RequestParam("file") MultipartFile file) {
         String avatarUrl = courseService.uploadCourseAvatar(courseId, file);
         return ResponseEntity.ok(avatarUrl);
     }
 
+    @Operation(summary = "Получить аватар курса")
     @GetMapping("/{courseId}/avatar")
     public ResponseEntity<Resource> getCourseAvatar(@PathVariable int courseId) {
         Resource avatarResource = courseService.getCourseAvatar(courseId);
@@ -268,5 +238,4 @@ public class CourseController {
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(avatarResource);
     }
-
 }

@@ -2,6 +2,7 @@ package com.knitwit.api.v1.controller;
 
 import com.knitwit.model.CourseRating;
 import com.knitwit.service.CourseRatingService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class CourseRatingController {
         this.courseRatingService = courseRatingService;
     }
 
+    @Operation(summary = "Добавить оценку курсу")
     @PostMapping("/course/{courseId}/user/{userId}")
     public ResponseEntity<CourseRating> rateCourse(
             @PathVariable("courseId") int courseId,
@@ -39,6 +41,7 @@ public class CourseRatingController {
         }
     }
 
+    @Operation(summary = "Удалить оценку курсу")
     @DeleteMapping("/course/{courseId}/user/{userId}")
     public ResponseEntity<Void> deleteRating(
             @PathVariable("courseId") int courseId,
@@ -51,18 +54,21 @@ public class CourseRatingController {
         }
     }
 
+    @Operation(summary = "Получить оценки пользователя")
     @GetMapping("/user/{userId}/ratings")
     public ResponseEntity<List<CourseRating>> getUserRatings(@PathVariable("userId") int userId) {
         List<CourseRating> ratings = courseRatingService.getUserRatings(userId);
         return new ResponseEntity<>(ratings, HttpStatus.OK);
     }
 
+    @Operation(summary = "Получить оценки курса")
     @GetMapping("/course/{courseId}/ratings")
     public ResponseEntity<List<CourseRating>> getCourseRatings(@PathVariable("courseId") int courseId) {
         List<CourseRating> ratings = courseRatingService.getCourseRatings(courseId);
         return new ResponseEntity<>(ratings, HttpStatus.OK);
     }
 
+    @Operation(summary = "Получить среднюю оценку курса")
     @GetMapping("/course/{courseId}/average-rating")
     public ResponseEntity<Double> getAverageRating(@PathVariable("courseId") int courseId) {
         Double averageRating = courseRatingService.getAverageRating(courseId);

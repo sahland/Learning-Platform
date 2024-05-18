@@ -5,7 +5,6 @@ import com.knitwit.model.User;
 import com.knitwit.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.core.io.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +16,11 @@ import java.util.Set;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @Operation(summary = "Создание пользователя")
     @PostMapping("/create")
@@ -56,12 +58,14 @@ public class UserController {
         return ResponseEntity.ok(subscribedCourses);
     }
 
+    @Operation(summary = "Добавить аватар пользователя")
     @PostMapping("/{userId}/avatar")
     public ResponseEntity <String> uploadUserAvatar(@PathVariable int userId, @RequestParam("file") MultipartFile file) {
         String avatarUrl = userService.uploadUserAvatar(userId, file);
         return ResponseEntity.ok(avatarUrl);
     }
 
+    @Operation(summary = "Получить аватар пользователя")
     @GetMapping("/{userId}/avatar")
     public ResponseEntity <Resource> getUserAvatar(@PathVariable int userId) {
         Resource avatarResource = userService.getUserAvatar(userId);

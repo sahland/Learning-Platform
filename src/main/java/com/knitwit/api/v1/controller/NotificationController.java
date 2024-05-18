@@ -3,7 +3,6 @@ package com.knitwit.api.v1.controller;
 import com.knitwit.model.Notification;
 import com.knitwit.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -12,8 +11,11 @@ import java.util.List;
 @RequestMapping("/api/v1/notifications")
 public class NotificationController {
 
-    @Autowired
-    private NotificationService notificationService;
+    private final NotificationService notificationService;
+
+    public NotificationController(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
 
     @Operation(summary = "Добавление уведомления")
     @PostMapping("/save")

@@ -6,8 +6,8 @@ import com.knitwit.model.User;
 import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.LearningProgressRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -15,20 +15,26 @@ import java.util.Optional;
 @Service
 public class LearningProgressService {
 
-    @Autowired
-    private LearningProgressRepository learningProgressRepository;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private CourseSectionService courseSectionService;
-    @Autowired
-    CourseSectionRepository courseSectionRepository;
+    private final LearningProgressRepository learningProgressRepository;
+    private final UserService userService;
+    private final CourseSectionService courseSectionService;
+    private final CourseSectionRepository courseSectionRepository;
 
+    public LearningProgressService(LearningProgressRepository learningProgressRepository, UserService userService,
+                                   CourseSectionService courseSectionService,
+                                   CourseSectionRepository courseSectionRepository) {
+        this.learningProgressRepository = learningProgressRepository;
+        this.userService = userService;
+        this.courseSectionService = courseSectionService;
+        this.courseSectionRepository = courseSectionRepository;
+    }
+
+    @Transactional
     public void markSectionAsCompleted(int userId, int sectionId) {
         User user = userService.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден по ID: " + userId));
         CourseSection section = courseSectionService.findById(sectionId)
-                .orElseThrow(() -> new IllegalArgumentException("Course section not found with id: " + sectionId));
+                .orElseThrow(() -> new IllegalArgumentException("Раздел курса не найден по ID: " + sectionId));
 
         Optional<LearningProgress> optionalLearningProgress = learningProgressRepository.findByUserUserIdAndSectionSectionId(userId, sectionId);
         if (optionalLearningProgress.isPresent()) {
@@ -44,11 +50,12 @@ public class LearningProgressService {
         }
     }
 
+    @Transactional
     public void markSectionAsIncomplete(int userId, int sectionId) {
         User user = userService.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден по ID: " + userId));
         CourseSection section = courseSectionService.findById(sectionId)
-                .orElseThrow(() -> new IllegalArgumentException("Course section not found with id: " + sectionId));
+                .orElseThrow(() -> new IllegalArgumentException("Раздел курса не найден по ID: " + sectionId));
 
         Optional<LearningProgress> optionalLearningProgress = learningProgressRepository.findByUserUserIdAndSectionSectionId(userId, sectionId);
         if (optionalLearningProgress.isPresent()) {

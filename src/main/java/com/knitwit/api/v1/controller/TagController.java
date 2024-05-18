@@ -3,7 +3,6 @@ package com.knitwit.api.v1.controller;
 import com.knitwit.model.Tag;
 import com.knitwit.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +12,11 @@ import java.util.List;
 @RequestMapping("/api/v1/tags")
 public class TagController {
 
-    @Autowired
-    private TagService tagService;
+    private final TagService tagService;
+
+    public TagController(TagService tagService) {
+        this.tagService = tagService;
+    }
 
     @Operation(summary = "Создание тега")
     @PostMapping("/create")

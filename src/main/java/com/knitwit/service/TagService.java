@@ -3,7 +3,6 @@ package com.knitwit.service;
 import com.knitwit.model.Tag;
 import com.knitwit.repository.TagRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,8 +13,11 @@ import java.util.Optional;
 @Service
 public class TagService {
 
-    @Autowired
-    private TagRepository tagRepository;
+    private final TagRepository tagRepository;
+
+    public TagService(TagRepository tagRepository) {
+        this.tagRepository = tagRepository;
+    }
 
     @Transactional
     public Tag createTag(Tag tag) {
@@ -35,7 +37,7 @@ public class TagService {
             tag.setTagName(updatedTag.getTagName());
             return tagRepository.save(tag);
         } else {
-            throw new IllegalArgumentException("Tag not found with id: " + tagId);
+            throw new IllegalArgumentException("Тег не найден по id: " + tagId);
         }
     }
 
@@ -49,6 +51,6 @@ public class TagService {
 
     public Tag getTagById(int tagId) {
         return tagRepository.findById(tagId)
-                .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + tagId));
+                .orElseThrow(() -> new IllegalArgumentException("Тег не найден по id: " + tagId));
     }
 }

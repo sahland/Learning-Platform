@@ -3,7 +3,6 @@ package com.knitwit.service;
 import com.knitwit.model.CourseSection;
 import com.knitwit.repository.CourseSectionRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,8 +12,11 @@ import java.util.Optional;
 @Service
 public class CourseSectionService {
 
-    @Autowired
-    private CourseSectionRepository courseSectionRepository;
+    private final CourseSectionRepository courseSectionRepository;
+
+    public CourseSectionService(CourseSectionRepository courseSectionRepository) {
+        this.courseSectionRepository = courseSectionRepository;
+    }
 
     public CourseSection getSectionById(int sectionId) {
         return courseSectionRepository.findById(sectionId).orElse(null);
