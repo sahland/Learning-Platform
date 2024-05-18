@@ -112,6 +112,8 @@ public class CourseService {
     public void deleteCourse(int courseId) {
         Optional<Course> optionalCourse = courseRepository.findById(courseId);
         if (optionalCourse.isPresent()) {
+            Course course = optionalCourse.get();
+            course.getTags().clear();
             courseRepository.deleteById(courseId);
         } else {
             throw new IllegalArgumentException("Курс с указанным ID не найден: " + courseId);
