@@ -59,9 +59,9 @@ public class CourseService {
             Course savedCourse = courseRepository.save(course);
             Set<Tag> savedTags = new HashSet<>();
             for (Tag tag : tags) {
-                Tag existingTag = tagRepository.findByTagName(tag.getTagName());
-                if (existingTag != null) {
-                    savedTags.add(existingTag);
+                List<Tag> existingTags = tagRepository.findByTagName(tag.getTagName());
+                if (!existingTags.isEmpty()) {
+                    savedTags.addAll(existingTags);
                 } else {
                     throw new IllegalArgumentException("Тег с названием " + tag.getTagName() + " не найден.");
                 }

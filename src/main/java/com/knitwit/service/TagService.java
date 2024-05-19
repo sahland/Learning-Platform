@@ -46,8 +46,13 @@ public class TagService {
     }
 
     public Tag getTagByName(String tagName) {
-        return tagRepository.findByTagName(tagName);
+        List<Tag> tags = tagRepository.findByTagName(tagName);
+        if (tags.isEmpty()) {
+            return null;
+        }
+        return tags.get(0);
     }
+
 
     public Tag getTagById(int tagId) {
         return tagRepository.findById(tagId)
