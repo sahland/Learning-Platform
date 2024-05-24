@@ -1,4 +1,4 @@
 FROM openjdk:17-jdk-slim
-VOLUME /tmp
-COPY target/knitwit.jar app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+WORKDIR /app
+COPY target/knitwit-0.0.1-SNAPSHOT.jar app.jar
+CMD ["java", "-jar", "app.jar"]

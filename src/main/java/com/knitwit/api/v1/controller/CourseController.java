@@ -40,9 +40,11 @@ public class CourseController {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         CourseWithSectionsAndTagsRequest request = objectMapper.readValue(courseJson, CourseWithSectionsAndTagsRequest.class);
-        Course createdCourse = courseService.createCourseWithSections(request.getCourse(), request.getSections(), request.getTags(), avatar);
+        int creatorUserId = request.getCourse().getCreator().getUserId();
+        Course createdCourse = courseService.createCourseWithSections(request.getCourse(), request.getSections(), request.getTags(), creatorUserId, avatar);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCourse);
     }
+
 
     @Operation(summary = "Получить все курсы")
     @GetMapping

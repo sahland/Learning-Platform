@@ -46,13 +46,16 @@ public class CourseService {
     }
 
     @Transactional
-    public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags, MultipartFile avatarFile) {
+    public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags, int creatorUserId, MultipartFile avatarFile) {
         if (sections == null || sections.isEmpty()) {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         TransactionStatus status = transactionManager.getTransaction(def);
         try {
+            User creator = userRepository.findById(creatorUserId)
+                    .orElseThrow(() -> new IllegalArgumentException("Пользователь с указанным ID не найден: " + creatorUserId));
+            course.setCreator(creator);
             setSectionNumbersAndCourse(sections, course);
             course.setStatus(CourseStatus.IN_PROCESSING);
             course.setPublishedDate(LocalDate.now());
