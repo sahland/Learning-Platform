@@ -3,6 +3,7 @@ package com.knitwit.service;
 import com.knitwit.model.Notification;
 import com.knitwit.repository.NotificationRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,13 +12,10 @@ import java.util.List;
 
 @Schema(description = "Сервис для работы с уведомлениями")
 @Service
+@RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-
-    public NotificationService(NotificationRepository notificationRepository) {
-        this.notificationRepository = notificationRepository;
-    }
 
     @Transactional
     public Notification createNotification(Notification notification) {

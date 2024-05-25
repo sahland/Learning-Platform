@@ -3,20 +3,20 @@ package com.knitwit.api.v1.controller;
 import com.knitwit.model.Tag;
 import com.knitwit.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/tags")
+@SecurityRequirement(name = "Keycloak")
 public class TagController {
 
     private final TagService tagService;
-
-    public TagController(TagService tagService) {
-        this.tagService = tagService;
-    }
 
     @Operation(summary = "Создание тега")
     @PostMapping("/create")

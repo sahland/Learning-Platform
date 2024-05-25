@@ -6,8 +6,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.ArrayList;
-import java.util.List;
 
 @Schema(description = "Сущность раздела курса")
 @Data
@@ -22,7 +20,7 @@ public class CourseSection {
     @Column(name = "section_id")
     private int sectionId;
 
-    @Schema(description = "ID курса, к которому принадлежит раздел", example = "1")
+    @Schema(description = "ID курса, к которому принадлежит раздел")
     @ManyToOne
     @JoinColumn(name = "course_id")
     @JsonBackReference("course-sections")

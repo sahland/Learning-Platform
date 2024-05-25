@@ -1,6 +1,7 @@
 package com.knitwit.service;
 
 import io.minio.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -12,16 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 
 @Service
+@RequiredArgsConstructor
 public class MinioService {
 
     private final MinioClient minioClient;
 
     @Value("${minio.bucketName}")
     private String bucketName;
-
-    public MinioService(MinioClient minioClient) {
-        this.minioClient = minioClient;
-    }
 
     @Transactional
     @PostConstruct

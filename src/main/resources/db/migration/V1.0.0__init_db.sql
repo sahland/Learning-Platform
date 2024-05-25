@@ -2,7 +2,8 @@ CREATE TABLE users
 (
     user_id         SERIAL PRIMARY KEY NOT NULL,
     nickname        VARCHAR(25)        NOT NULL,
-    user_avatar_key VARCHAR(255)
+    user_avatar_key VARCHAR(255),
+    keycloak_login  VARCHAR(255)
 );
 
 CREATE TABLE notification

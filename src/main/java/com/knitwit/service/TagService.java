@@ -3,6 +3,7 @@ package com.knitwit.service;
 import com.knitwit.model.Tag;
 import com.knitwit.repository.TagRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,13 +12,10 @@ import java.util.Optional;
 
 @Schema(description = "Сервис для работы с тегами")
 @Service
+@RequiredArgsConstructor
 public class TagService {
 
     private final TagRepository tagRepository;
-
-    public TagService(TagRepository tagRepository) {
-        this.tagRepository = tagRepository;
-    }
 
     @Transactional
     public Tag createTag(Tag tag) {
@@ -48,7 +46,7 @@ public class TagService {
     public Tag getTagByName(String tagName) {
         List<Tag> tags = tagRepository.findByTagName(tagName);
         if (tags.isEmpty()) {
-            return null;
+            throw new IllegalArgumentException("тег " + tagName + " не найден");
         }
         return tags.get(0);
     }

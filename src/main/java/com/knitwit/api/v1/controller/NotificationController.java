@@ -3,23 +3,23 @@ package com.knitwit.api.v1.controller;
 import com.knitwit.model.Notification;
 import com.knitwit.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/notifications")
+@SecurityRequirement(name = "Keycloak")
 public class NotificationController {
 
     private final NotificationService notificationService;
 
-    public NotificationController(NotificationService notificationService) {
-        this.notificationService = notificationService;
-    }
-
     @Operation(summary = "Добавление уведомления")
     @PostMapping("/save")
-    public ResponseEntity<Notification> createNotification(@RequestBody Notification notification) {
+        public ResponseEntity<Notification> createNotification(@RequestBody Notification notification) {
         Notification savedNotification = notificationService.createNotification(notification);
         return ResponseEntity.ok(savedNotification);
     }

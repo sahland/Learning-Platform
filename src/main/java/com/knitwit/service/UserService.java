@@ -4,6 +4,7 @@ import com.knitwit.model.Course;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,18 +17,17 @@ import java.util.Set;
 
 @Schema(description = "Сервис для работы с пользователем")
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final MinioService minioService;
 
-    public UserService(UserRepository userRepository, MinioService minioService) {
-        this.userRepository = userRepository;
-        this.minioService = minioService;
-    }
-
     @Transactional
     public User createUser(User user) {
+        if (userRepository.existsByKeycloakLogin(user.getKeycloakLogin())) {
+            throw new IllegalArgumentException("Пользователь с этим логином уже существует.");
+        }
         return userRepository.save(user);
     }
 
@@ -85,4 +85,13 @@ public class UserService {
         String objectName = user.getUserAvatarKey();
         return minioService.getFileResource(objectName);
     }
+
+    public int getUserIdByKeycloakLogin(String keycloakLogin) {
+        User user = userRepository.findByKeycloakLogin(keycloakLogin);
+        if (user == null) {
+            throw new IllegalArgumentException("Пользователь с логином Keycloak '" + keycloakLogin + "' не найден.");
+        }
+        return user.getUserId();
+    }
+
 }

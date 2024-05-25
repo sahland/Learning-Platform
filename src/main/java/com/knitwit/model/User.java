@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,6 +30,10 @@ public class User {
     @Schema(description = "Ключ аватара пользователя")
     @Column(name = "user_avatar_key")
     private String userAvatarKey;
+
+    @Schema(description = "логин пользователя в keycloak", example = "Vasya2007")
+    @Column(name = "keycloak_login")
+    private String keycloakLogin;
 
     @Schema(description = "Курсы на которые подписан пользователь")
     @ManyToMany

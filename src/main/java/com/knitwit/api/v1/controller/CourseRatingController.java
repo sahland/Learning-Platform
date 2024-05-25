@@ -3,6 +3,8 @@ package com.knitwit.api.v1.controller;
 import com.knitwit.model.CourseRating;
 import com.knitwit.service.CourseRatingService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,15 +14,12 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/ratings")
+@SecurityRequirement(name = "Keycloak")
 public class CourseRatingController {
 
     private final CourseRatingService courseRatingService;
-
-    @Autowired
-    public CourseRatingController(CourseRatingService courseRatingService) {
-        this.courseRatingService = courseRatingService;
-    }
 
     @Operation(summary = "Добавить оценку курсу")
     @PostMapping("/course/{courseId}/user/{userId}")

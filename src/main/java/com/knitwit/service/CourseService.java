@@ -7,6 +7,7 @@ import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.TagRepository;
 import com.knitwit.repository.UserRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import java.util.Set;
 
 @Schema(description = "Сервис для работы с курсами")
 @Service
+@RequiredArgsConstructor
 public class CourseService {
 
     private final CourseRepository courseRepository;
@@ -35,15 +37,6 @@ public class CourseService {
     private final CourseSectionRepository courseSectionRepository;
     private final PlatformTransactionManager transactionManager;
     private final MinioService minioService;
-
-    public CourseService(CourseRepository courseRepository, TagRepository tagRepository, UserRepository userRepository, CourseSectionRepository courseSectionRepository, PlatformTransactionManager transactionManager, MinioService minioService) {
-        this.courseRepository = courseRepository;
-        this.tagRepository = tagRepository;
-        this.userRepository = userRepository;
-        this.courseSectionRepository = courseSectionRepository;
-        this.transactionManager = transactionManager;
-        this.minioService = minioService;
-    }
 
     @Transactional
     public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags, int creatorUserId, MultipartFile avatarFile) {

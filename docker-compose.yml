@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:16
     container_name: postgres
     ports:
       - "5432:5432"
@@ -23,6 +23,8 @@ services:
       - "5050:80"
     depends_on:
       - postgres
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
 
   minio:
     image: quay.io/minio/minio
@@ -37,6 +39,21 @@ services:
       - minio-data:/data
     command: server /data --console-address ":9001"
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: knitwitadmin
+      KEYCLOAK_ADMIN_PASSWORD: knitwitadmin
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    volumes:
+      - keycloak-data:/opt/jboss/keycloak/standalone/data
+    command:
+      - start-dev
+
   app:
     build:
       context: .
@@ -49,12 +66,19 @@ services:
       SPRING_MINIO_URL: http://minio:9000
       SPRING_MINIO_USERNAME: knitwitadmin
       SPRING_MINIO_PASSWORD: knitwitadmin
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: KnitWit-Realm
+      KEYCLOAK_CLIENT_ID: KnitWit-Client
+      KEYCLOAK_CLIENT_SECRET: NNgdRoaGWsQqRx3BIHFokLCayKg76i8e
     ports:
       - "8081:8081"
     depends_on:
       - postgres
       - minio
+      - keycloak
 
 volumes:
   postgres-data:
   minio-data:
+  pgadmin-data:
+  keycloak-data:

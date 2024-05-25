@@ -2,18 +2,18 @@ package com.knitwit.api.v1.controller;
 
 import com.knitwit.service.LearningProgressService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/progress")
+@SecurityRequirement(name = "Keycloak")
 public class LearningProgressController {
 
     private final LearningProgressService learningProgressService;
-
-    public LearningProgressController(LearningProgressService learningProgressService) {
-        this.learningProgressService = learningProgressService;
-    }
 
     @Operation(summary = "Отметить раздел как завершенный для пользователя")
     @PostMapping("/{userId}/section/{sectionId}/complete")

@@ -1,6 +1,9 @@
 -- Вставка данных в таблицу users
-INSERT INTO users (nickname, user_avatar_key)
-SELECT substr(md5(random()::text), 1, 10), 'user_avatar_' || md5(random()::text)
+INSERT INTO users (nickname, user_avatar_key, keycloak_login)
+SELECT
+    substr(md5(random()::text), 1, 10),
+    'user_avatar_' || md5(random()::text),
+    md5(random()::text)
 FROM generate_series(1, 100);
 
 -- Вставка данных в таблицу tag

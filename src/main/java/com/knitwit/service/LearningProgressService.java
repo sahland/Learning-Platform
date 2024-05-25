@@ -6,6 +6,7 @@ import com.knitwit.model.User;
 import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.LearningProgressRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,21 +14,13 @@ import java.util.Optional;
 
 @Schema(description = "Сервис для работы с прогрессм=ом прохождения пользователем курсов")
 @Service
+@RequiredArgsConstructor
 public class LearningProgressService {
 
     private final LearningProgressRepository learningProgressRepository;
     private final UserService userService;
     private final CourseSectionService courseSectionService;
     private final CourseSectionRepository courseSectionRepository;
-
-    public LearningProgressService(LearningProgressRepository learningProgressRepository, UserService userService,
-                                   CourseSectionService courseSectionService,
-                                   CourseSectionRepository courseSectionRepository) {
-        this.learningProgressRepository = learningProgressRepository;
-        this.userService = userService;
-        this.courseSectionService = courseSectionService;
-        this.courseSectionRepository = courseSectionRepository;
-    }
 
     @Transactional
     public void markSectionAsCompleted(int userId, int sectionId) {

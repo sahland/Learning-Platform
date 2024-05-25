@@ -5,6 +5,7 @@ import com.knitwit.repository.CourseRatingRepository;
 import com.knitwit.repository.CourseRepository;
 import com.knitwit.repository.UserRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,17 +13,11 @@ import java.util.List;
 
 @Schema(description = "Сервис для работы с рейтингами курсов")
 @Service
+@RequiredArgsConstructor
 public class CourseRatingService {
     private final CourseRatingRepository courseRatingRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
-
-    public CourseRatingService(CourseRatingRepository courseRatingRepository, CourseRepository courseRepository, UserRepository userRepository) {
-        this.courseRatingRepository = courseRatingRepository;
-        this.courseRepository = courseRepository;
-        this.userRepository = userRepository;
-    }
-
 
     @Transactional
     public CourseRating rateCourse(int courseId, int userId, int value) {
