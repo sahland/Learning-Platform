@@ -19,6 +19,7 @@ public class CourseSectionController {
 
     @Operation(summary = "Получить раздел курса по ID")
     @GetMapping("/{sectionId}")
+    //admin
     public ResponseEntity<CourseSection> getSectionById(@PathVariable int sectionId) {
         CourseSection section = courseSectionService.getSectionById(sectionId);
         if (section != null) {

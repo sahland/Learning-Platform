@@ -7,6 +7,7 @@ import com.knitwit.model.Course;
 import com.knitwit.model.CourseSection;
 import com.knitwit.model.Tag;
 import com.knitwit.service.CourseService;
+import com.knitwit.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,20 +38,22 @@ public class CourseController {
 
     @Operation(summary = "Создать курс")
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<Course> createCourseWithAvatar(
+    //user
+    public ResponseEntity<Course> createCourse(
             @RequestPart("text") String courseJson,
-            @RequestPart("file") MultipartFile avatar) throws IOException {
+            @RequestPart("file") MultipartFile avatar,
+            @AuthenticationPrincipal Jwt jwt) throws IOException {
+        String username = jwt.getClaim("preferred_username");
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         CourseWithSectionsAndTagsRequest request = objectMapper.readValue(courseJson, CourseWithSectionsAndTagsRequest.class);
-        int creatorUserId = request.getCourse().getCreator().getUserId();
-        Course createdCourse = courseService.createCourseWithSections(request.getCourse(), request.getSections(), request.getTags(), creatorUserId, avatar);
+        Course createdCourse = courseService.createCourse(request.getCourse(), request.getSections(), request.getTags(), username, avatar);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCourse);
     }
 
-
     @Operation(summary = "Получить все курсы")
     @GetMapping
+    //admin
     public ResponseEntity<List<Course>> getAllCourses() {
         List<Course> courses = courseService.getAllCourses();
         return ResponseEntity.ok(courses);
@@ -56,6 +61,7 @@ public class CourseController {
 
     @Operation(summary = "Получить курс по ID")
     @GetMapping("/{courseId}")
+    //user
     public ResponseEntity<Course> getCourseById(@PathVariable int courseId) {
         Course course = courseService.getCourseById(courseId);
         return ResponseEntity.ok(course);

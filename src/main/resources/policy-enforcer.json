@@ -5,7 +5,6 @@
   "credentials": {
     "secret": "RQ5BuLszpp11CPUA3jJ1bTE2sTswIllB"
   },
-  "http-method-as-scope": true,
   "paths" : [
     {
       "path": "/swagger-ui/*",
@@ -15,6 +14,15 @@
       "enforcement-mode": "DISABLED"
     },{
       "path": "/api/v1/users/*",
+      "enforcement-mode": "DISABLED"
+    },{
+      "path": "/api/v1/courses",
+      "enforcement-mode": "DISABLED"
+    },{
+      "path": "/api/v1/users/",
+      "enforcement-mode": "DISABLED"
+    },{
+      "path": "/api/v1/tags/*",
       "enforcement-mode": "DISABLED"
     }
   ]

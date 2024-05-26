@@ -19,6 +19,7 @@ public class NotificationController {
 
     @Operation(summary = "Добавление уведомления")
     @PostMapping("/save")
+    //admin
         public ResponseEntity<Notification> createNotification(@RequestBody Notification notification) {
         Notification savedNotification = notificationService.createNotification(notification);
         return ResponseEntity.ok(savedNotification);
@@ -26,6 +27,7 @@ public class NotificationController {
 
     @Operation(summary = "Получение всех уведомлений")
     @GetMapping("/all")
+    //user
     public ResponseEntity<List<Notification>> getAllNotifications() {
         List<Notification> notifications = notificationService.getAllNotifications();
         return ResponseEntity.ok(notifications);
@@ -33,6 +35,7 @@ public class NotificationController {
 
     @Operation(summary = "Получение уведомления по его ID")
     @GetMapping("/{notificationId}")
+    //user
     public ResponseEntity<Notification> getNotificationById(@PathVariable int notificationId) {
         Notification notification = notificationService.getNotificationById(notificationId);
         return ResponseEntity.ok(notification);
@@ -40,6 +43,7 @@ public class NotificationController {
 
     @Operation(summary = "Удаление уведомления по его ID")
     @DeleteMapping("/{notificationId}")
+    //admin
     public ResponseEntity<?> deleteNotificationById(@PathVariable int notificationId) {
         notificationService.deleteNotificationById(notificationId);
         return ResponseEntity.ok().build();

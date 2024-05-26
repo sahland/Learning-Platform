@@ -39,20 +39,21 @@ public class CourseService {
     private final MinioService minioService;
 
     @Transactional
-    public Course createCourseWithSections(Course course, List<CourseSection> sections, List<Tag> tags, int creatorUserId, MultipartFile avatarFile) {
+    public Course createCourse(Course course, List<CourseSection> sections, List<Tag> tags, String username, MultipartFile avatarFile) {
+        User creator = userRepository.findByKeycloakLogin(username)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь с указанным логином не найден: " + username));
         if (sections == null || sections.isEmpty()) {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         TransactionStatus status = transactionManager.getTransaction(def);
         try {
-            User creator = userRepository.findById(creatorUserId)
-                    .orElseThrow(() -> new IllegalArgumentException("Пользователь с указанным ID не найден: " + creatorUserId));
             course.setCreator(creator);
             setSectionNumbersAndCourse(sections, course);
             course.setStatus(CourseStatus.IN_PROCESSING);
             course.setPublishedDate(LocalDate.now());
             Course savedCourse = courseRepository.save(course);
+
             Set<Tag> savedTags = new HashSet<>();
             for (Tag tag : tags) {
                 List<Tag> existingTags = tagRepository.findByTagName(tag.getTagName());
@@ -63,6 +64,7 @@ public class CourseService {
                 }
             }
             savedCourse.setTags(savedTags);
+
             if (avatarFile != null && !avatarFile.isEmpty()) {
                 uploadCourseAvatar(savedCourse.getCourseId(), avatarFile);
             }

@@ -1,27 +1,36 @@
 package com.knitwit.service;
 
+import com.knitwit.api.v1.request.UserRequest;
+import com.knitwit.config.security.KeycloakSecurityUtil;
 import com.knitwit.model.Course;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 
-@Schema(description = "Сервис для работы с пользователем")
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final MinioService minioService;
+    private final KeycloakSecurityUtil keycloakUtil;
+
+    @Value("${realm}")
+    private String realm;
 
     @Transactional
     public User createUser(User user) {
@@ -39,15 +48,35 @@ public class UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден по id: " + userId));
     }
+
     @Transactional
-    public User updateUser(int userId, User updatedUser) {
-        Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isPresent()) {
-            updatedUser.setUserId(userId);
-            return userRepository.save(updatedUser);
-        } else {
-            throw new IllegalArgumentException("Пользователь не найден по ID: " + userId);
-        }
+    public User getUserProfile(String username) {
+        return userRepository.findByKeycloakLogin(username)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+    }
+
+    @Transactional
+    public User updateNickname(String username, String newNickname) {
+        User user = userRepository.findByKeycloakLogin(username)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+        user.setNickname(newNickname);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateEmailInKeycloak(String username, String newEmail) {
+        keycloakUtil.updateUserEmail(username, newEmail);
+        return userRepository.findByKeycloakLogin(username)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+    }
+
+    @Transactional
+    public User updatePasswordInKeycloak(String username, String newPassword) {
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(newPassword);
+        keycloakUtil.updateUserPassword(username, credential);
+        return userRepository.findByKeycloakLogin(username).orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
     public Set<Course> getAllSubscribedCourses(User user) {
@@ -59,10 +88,12 @@ public class UserService {
     }
 
     @Transactional
-    public String uploadUserAvatar(int userId, MultipartFile file) {
+    public String uploadUserAvatar(String keycloakLogin, MultipartFile file) {
         try {
+            User user = userRepository.findByKeycloakLogin(keycloakLogin)
+                    .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+            int userId = user.getUserId();
             String objectName = "user_avatars/user_" + userId + "_avatar.jpg";
-            User user = getUserById(userId);
             String previousAvatarKey = user.getUserAvatarKey();
             if (previousAvatarKey != null) {
                 minioService.deleteFile(previousAvatarKey);
@@ -77,21 +108,49 @@ public class UserService {
         }
     }
 
-    public Resource getUserAvatar(int userId) {
-        User user = getUserById(userId);
-        if (user == null || user.getUserAvatarKey() == null) {
-            throw new RuntimeException("Ключ аватара пользователя имеет значение null для пользователя с ID: " + userId);
-        }
-        String objectName = user.getUserAvatarKey();
-        return minioService.getFileResource(objectName);
+    public User getUserByKeycloakUsername(String username) {
+        UserRepresentation keycloakUser = keycloakUtil.getUserByUsername(username);
+        return userRepository.findByKeycloakLogin(keycloakUser.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
-    public int getUserIdByKeycloakLogin(String keycloakLogin) {
-        User user = userRepository.findByKeycloakLogin(keycloakLogin);
-        if (user == null) {
-            throw new IllegalArgumentException("Пользователь с логином Keycloak '" + keycloakLogin + "' не найден.");
+    @Transactional
+    public User registerUser(UserRequest userRequest) {
+        Response response = createUserInKeycloak(userRequest);
+        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+            String keycloakLogin = userRequest.getLogin();
+            User user = mapUserFromRequest(userRequest);
+            user.setKeycloakLogin(keycloakLogin);
+            return createUser(user);
+        } else if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
+            throw new IllegalArgumentException("Пользователь уже существует");
+        } else {
+            throw new RuntimeException("Ошибка при создании пользователя в Keycloak: " + response.getStatus());
         }
-        return user.getUserId();
     }
 
+    @Transactional
+    public Response createUserInKeycloak(UserRequest userRequest) {
+        UserRepresentation userRep = mapUserRepFromRequest(userRequest);
+        Keycloak keycloak = keycloakUtil.getKeycloakInstance();
+        return keycloak.realm(realm).users().create(userRep);
+    }
+
+    public UserRepresentation mapUserRepFromRequest(UserRequest userRequest) {
+        UserRepresentation userRep = new UserRepresentation();
+        userRep.setUsername(userRequest.getLogin());
+        userRep.setEmail(userRequest.getEmail());
+        userRep.setEnabled(true);
+        userRep.setEmailVerified(true);
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(userRequest.getPassword());
+        userRep.setCredentials(Arrays.asList(credential));
+        return userRep;
+    }
+
+    public User mapUserFromRequest(UserRequest userRequest) {
+        User user = new User();
+        return user;
+    }
 }

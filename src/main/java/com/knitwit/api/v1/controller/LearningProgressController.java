@@ -17,6 +17,7 @@ public class LearningProgressController {
 
     @Operation(summary = "Отметить раздел как завершенный для пользователя")
     @PostMapping("/{userId}/section/{sectionId}/complete")
+    //user
     public ResponseEntity<Void> markSectionAsCompleted(@PathVariable int userId, @PathVariable int sectionId) {
         learningProgressService.markSectionAsCompleted(userId, sectionId);
         return ResponseEntity.noContent().build();
@@ -24,6 +25,7 @@ public class LearningProgressController {
 
     @Operation(summary = "Отметить раздел как незавершенный для пользователя")
     @PostMapping("/{userId}/section/{sectionId}/incomplete")
+    //user
     public ResponseEntity<Void> markSectionAsIncomplete(@PathVariable int userId, @PathVariable int sectionId) {
         learningProgressService.markSectionAsIncomplete(userId, sectionId);
         return ResponseEntity.noContent().build();
@@ -31,6 +33,7 @@ public class LearningProgressController {
 
     @Operation(summary = "Получить процент завершенных разделов для пользователя в курсе")
     @GetMapping("/{userId}/course/{courseId}/completion")
+    //user
     public ResponseEntity<Integer> getCourseCompletionPercentage(@PathVariable int userId, @PathVariable int courseId) {
         double completionPercentage = learningProgressService.getCompletionPercentageForUserAndCourse(userId, courseId);
         return ResponseEntity.ok((int) completionPercentage);

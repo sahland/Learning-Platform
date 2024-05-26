@@ -22,7 +22,7 @@ public class CourseRatingService {
     @Transactional
     public CourseRating rateCourse(int courseId, int userId, int value) {
         if (value < 1 || value > 5) {
-            throw new IllegalArgumentException("Значение рейтинга должен быть от 1 до 5");
+            throw new IllegalArgumentException("Значение рейтинга должно быть от 1 до 5");
         }
         CourseRating existingRating = courseRatingRepository.findCourseRatingByCourseCourseIdAndUserUserId(courseId, userId);
         if (existingRating != null) {
