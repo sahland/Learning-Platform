@@ -1,4 +1,4 @@
-package com.knitwit.api.v1.request;
+package com.knitwit.api.v1.dto.request;
 
 import com.knitwit.model.Course;
 import com.knitwit.model.CourseSection;

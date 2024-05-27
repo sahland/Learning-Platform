@@ -64,4 +64,10 @@ public class CourseRatingService {
         double average = sum / ratings.size();
         return Math.round(average * 10.0) / 10.0;
     }
+
+    public int getUserIdByUsername(String username) {
+        return userRepository.findByKeycloakLogin(username)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден по логину: " + username))
+                .getUserId();
+    }
 }

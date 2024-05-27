@@ -63,14 +63,16 @@ ORDER BY random()
 LIMIT 100;
 
 -- Вставка данных в таблицу course_section
-INSERT INTO course_section (course_id, content, section_number)
+INSERT INTO course_section (course_id, title, content, section_number)
 SELECT course_id,
+       'Section Title ' || gs,
        md5(random()::text),
        floor(random() * 10 + 1)
 FROM course
-         CROSS JOIN generate_series(1, 10) as s
+         CROSS JOIN generate_series(1, 10) as gs
 ORDER BY random()
 LIMIT 100;
+
 
 -- Генерация случайных оценок для 100 строк таблицы course_rating
 INSERT INTO course_rating (user_id, course_id, value)

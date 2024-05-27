@@ -8,9 +8,6 @@ import java.util.List;
 
 @Repository
 public interface CourseSectionRepository extends JpaRepository<CourseSection, Integer> {
-
     void deleteAllByCourseCourseId(int courseId);
-
     int countByCourseCourseId(int courseId);
-
 }

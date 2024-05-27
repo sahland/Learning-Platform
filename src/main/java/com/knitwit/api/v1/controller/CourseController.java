@@ -2,7 +2,7 @@ package com.knitwit.api.v1.controller;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.knitwit.api.v1.request.CourseWithSectionsAndTagsRequest;
+import com.knitwit.api.v1.dto.request.CourseWithSectionsAndTagsRequest;
 import com.knitwit.model.Course;
 import com.knitwit.model.CourseSection;
 import com.knitwit.model.Tag;

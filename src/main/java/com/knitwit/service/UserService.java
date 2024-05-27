@@ -1,6 +1,6 @@
 package com.knitwit.service;
 
-import com.knitwit.api.v1.request.UserRequest;
+import com.knitwit.api.v1.dto.request.UserRequest;
 import com.knitwit.config.security.KeycloakSecurityUtil;
 import com.knitwit.model.Course;
 import com.knitwit.model.User;
@@ -37,7 +37,10 @@ public class UserService {
         if (userRepository.existsByKeycloakLogin(user.getKeycloakLogin())) {
             throw new IllegalArgumentException("Пользователь с этим логином уже существует.");
         }
-        return userRepository.save(user);
+
+        User savedUser = userRepository.save(user);
+        savedUser.setNickname("user" + savedUser.getUserId());
+        return userRepository.save(savedUser);
     }
 
     public Iterable<User> getAllUsers() {

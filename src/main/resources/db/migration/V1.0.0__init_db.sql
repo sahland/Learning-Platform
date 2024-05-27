@@ -1,7 +1,7 @@
 CREATE TABLE users
 (
     user_id         SERIAL PRIMARY KEY NOT NULL,
-    nickname        VARCHAR(25)        NOT NULL,
+    nickname        VARCHAR(25),
     user_avatar_key VARCHAR(255),
     keycloak_login  VARCHAR(255)
 );
@@ -29,6 +29,7 @@ CREATE TABLE course_section
 (
     section_id     SERIAL PRIMARY KEY                    NOT NULL,
     course_id      INTEGER REFERENCES course (course_id) NOT NULL,
+    title          VARCHAR(255)                          NOT NULL,
     content        TEXT                                  NOT NULL,
     section_number INTEGER                               NOT NULL
 );
@@ -68,18 +69,3 @@ CREATE TABLE course_tag
     course_id     INTEGER REFERENCES course (course_id) NOT NULL,
     tag_id        INTEGER REFERENCES tag (tag_id)       NOT NULL
 );
-
-CREATE OR REPLACE FUNCTION update_nickname()
-    RETURNS TRIGGER AS
-$$
-BEGIN
-    NEW.nickname := 'user' || CAST(NEW.user_id AS VARCHAR);
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_nickname_trigger
-    BEFORE INSERT
-    ON users
-    FOR EACH ROW
-EXECUTE FUNCTION update_nickname();

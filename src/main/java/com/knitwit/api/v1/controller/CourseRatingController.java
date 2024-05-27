@@ -1,5 +1,8 @@
 package com.knitwit.api.v1.controller;
 
+import com.knitwit.api.v1.dto.request.CourseRatingRequest;
+import com.knitwit.api.v1.dto.response.CourseRatingResponse;
+import com.knitwit.mapper.CourseRatingMapper;
 import com.knitwit.model.CourseRating;
 import com.knitwit.service.CourseRatingService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -7,10 +10,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,21 +23,24 @@ import java.util.Map;
 public class CourseRatingController {
 
     private final CourseRatingService courseRatingService;
+    private final CourseRatingMapper courseRatingMapper;
 
     @Operation(summary = "Добавить оценку курсу")
     //user
-    @PostMapping("/course/{courseId}/user/{userId}")
-    public ResponseEntity<CourseRating> rateCourse(
+    @PostMapping("/course/{courseId}")
+    public ResponseEntity<CourseRatingResponse> rateCourse(
             @PathVariable("courseId") int courseId,
-            @PathVariable("userId") int userId,
-            @RequestBody Map<String, Integer> requestBody) {
-        int value = requestBody.get("value");
-        if (value < 1 || value > 5) {
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody CourseRatingRequest request) {
+        String username = jwt.getClaim("preferred_username");
+        int userId = courseRatingService.getUserIdByUsername(username);
+        if (request.getValue() < 1 || request.getValue() > 5) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try {
-            CourseRating rating = courseRatingService.rateCourse(courseId, userId, value);
-            return new ResponseEntity<>(rating, HttpStatus.OK);
+            CourseRating rating = courseRatingService.rateCourse(courseId, userId, request.getValue());
+            CourseRatingResponse response = courseRatingMapper.toResponse(rating);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -41,10 +48,12 @@ public class CourseRatingController {
 
     @Operation(summary = "Удалить оценку курсу")
     //user
-    @DeleteMapping("/course/{courseId}/user/{userId}")
+    @DeleteMapping("/course/{courseId}")
     public ResponseEntity<Void> deleteRating(
             @PathVariable("courseId") int courseId,
-            @PathVariable("userId") int userId) {
+            @AuthenticationPrincipal Jwt jwt) {
+        String username = jwt.getClaim("preferred_username");
+        int userId = courseRatingService.getUserIdByUsername(username);
         boolean deleted = courseRatingService.deleteRating(courseId, userId);
         if (deleted) {
             return new ResponseEntity<>(HttpStatus.OK);
@@ -56,17 +65,19 @@ public class CourseRatingController {
     @Operation(summary = "Получить оценки пользователя")
     //admin
     @GetMapping("/user/{userId}/ratings")
-    public ResponseEntity<List<CourseRating>> getUserRatings(@PathVariable("userId") int userId) {
+    public ResponseEntity<List<CourseRatingResponse>> getUserRatings(@PathVariable("userId") int userId) {
         List<CourseRating> ratings = courseRatingService.getUserRatings(userId);
-        return new ResponseEntity<>(ratings, HttpStatus.OK);
+        List<CourseRatingResponse> response = courseRatingMapper.toResponseList(ratings);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @Operation(summary = "Получить оценки курса")
     //admin
     @GetMapping("/course/{courseId}/ratings")
-    public ResponseEntity<List<CourseRating>> getCourseRatings(@PathVariable("courseId") int courseId) {
+    public ResponseEntity<List<CourseRatingResponse>> getCourseRatings(@PathVariable("courseId") int courseId) {
         List<CourseRating> ratings = courseRatingService.getCourseRatings(courseId);
-        return new ResponseEntity<>(ratings, HttpStatus.OK);
+        List<CourseRatingResponse> response = courseRatingMapper.toResponseList(ratings);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @Operation(summary = "Получить среднюю оценку курса")

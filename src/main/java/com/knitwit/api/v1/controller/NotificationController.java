@@ -1,13 +1,22 @@
 package com.knitwit.api.v1.controller;
 
+import com.knitwit.api.v1.dto.request.NotificationRequest;
+import com.knitwit.api.v1.dto.response.NotificationResponse;
+import com.knitwit.mapper.NotificationMapper;
 import com.knitwit.model.Notification;
+import com.knitwit.model.User;
+import com.knitwit.repository.UserRepository;
 import com.knitwit.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,34 +25,40 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final NotificationMapper notificationMapper;
+    private final UserRepository userRepository;
 
     @Operation(summary = "Добавление уведомления")
     @PostMapping("/save")
-    //admin
-        public ResponseEntity<Notification> createNotification(@RequestBody Notification notification) {
+    public ResponseEntity<NotificationResponse> createNotification(@RequestBody NotificationRequest request,
+                                                                   @AuthenticationPrincipal Jwt jwt) {
+        String username = jwt.getClaim("preferred_username");
+        Optional<User> creator = userRepository.findByKeycloakLogin(username);
+        Notification notification = notificationMapper.toEntity(request);
+        notification.setSenderId(creator.get().getUserId());
         Notification savedNotification = notificationService.createNotification(notification);
-        return ResponseEntity.ok(savedNotification);
+        NotificationResponse response = notificationMapper.toResponse(savedNotification);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Получение всех уведомлений")
     @GetMapping("/all")
-    //user
-    public ResponseEntity<List<Notification>> getAllNotifications() {
+    public ResponseEntity<List<NotificationResponse>> getAllNotifications() {
         List<Notification> notifications = notificationService.getAllNotifications();
-        return ResponseEntity.ok(notifications);
+        List<NotificationResponse> responses = notificationMapper.toResponseList(notifications);
+        return ResponseEntity.ok(responses);
     }
 
     @Operation(summary = "Получение уведомления по его ID")
     @GetMapping("/{notificationId}")
-    //user
-    public ResponseEntity<Notification> getNotificationById(@PathVariable int notificationId) {
+    public ResponseEntity<NotificationResponse> getNotificationById(@PathVariable int notificationId) {
         Notification notification = notificationService.getNotificationById(notificationId);
-        return ResponseEntity.ok(notification);
+        NotificationResponse response = notificationMapper.toResponse(notification);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Удаление уведомления по его ID")
     @DeleteMapping("/{notificationId}")
-    //admin
     public ResponseEntity<?> deleteNotificationById(@PathVariable int notificationId) {
         notificationService.deleteNotificationById(notificationId);
         return ResponseEntity.ok().build();

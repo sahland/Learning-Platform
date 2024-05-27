@@ -24,6 +24,9 @@
     },{
       "path": "/api/v1/tags/*",
       "enforcement-mode": "DISABLED"
+    },{
+      "path": "/api/*",
+      "enforcement-mode": "DISABLED"
     }
   ]
 }

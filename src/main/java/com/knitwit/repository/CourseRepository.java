@@ -11,13 +11,9 @@ import java.util.List;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer> {
-
     List<Course> findByTitleContaining(String keyword);
-
     List<Course> findByCreatorUserId(int userId);
-
     List<Course> findAllByStatus(CourseStatus status);
-
     Page<Course> findAllByStatus(CourseStatus status, Pageable pageable);
 
 }

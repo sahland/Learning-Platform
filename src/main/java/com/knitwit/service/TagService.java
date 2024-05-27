@@ -23,11 +23,6 @@ public class TagService {
     }
 
     @Transactional
-    public void deleteTag(int tagId) {
-        tagRepository.deleteById(tagId);
-    }
-
-    @Transactional
     public Tag updateTag(int tagId, Tag updatedTag) {
         Optional<Tag> optionalTag = tagRepository.findById(tagId);
         if (optionalTag.isPresent()) {
@@ -46,11 +41,10 @@ public class TagService {
     public Tag getTagByName(String tagName) {
         List<Tag> tags = tagRepository.findByTagName(tagName);
         if (tags.isEmpty()) {
-            throw new IllegalArgumentException("тег " + tagName + " не найден");
+            throw new IllegalArgumentException("Тег " + tagName + " не найден");
         }
         return tags.get(0);
     }
-
 
     public Tag getTagById(int tagId) {
         return tagRepository.findById(tagId)

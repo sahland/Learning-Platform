@@ -26,6 +26,10 @@ public class CourseSection {
     @JsonBackReference("course-sections")
     private Course course;
 
+    @Schema(description = "Название раздела", example = "Введение")
+    @Column(name = "title")
+    private String title;
+
     @Schema(description = "Содержимое раздела", example = "Пирография — техника, применяемая в декоративно-прикладном искусстве и художественной графике.")
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;

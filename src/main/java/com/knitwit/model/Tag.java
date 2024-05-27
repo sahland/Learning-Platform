@@ -28,7 +28,7 @@ public class Tag {
     private String tagName;
 
     @Schema(description = "Курсы, которые отмечены тегом")
-    @ManyToMany(mappedBy = "tags")
+    @ManyToMany(mappedBy = "tags", cascade = CascadeType.ALL)
     @JsonBackReference("course-tags")
     private Set<Course> courses = new HashSet<>();
 }
