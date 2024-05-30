@@ -2,7 +2,7 @@ package com.knitwit.api.v1.controller;
 
 import com.knitwit.api.v1.dto.request.LearningProgressRequest;
 import com.knitwit.api.v1.dto.response.LearningProgressResponse;
-import com.knitwit.mapper.LearningProgressMapper;
+import com.knitwit.api.v1.dto.mapper.LearningProgressMapper;
 import com.knitwit.model.LearningProgress;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;

@@ -2,13 +2,12 @@ package com.knitwit.api.v1.controller;
 
 import com.knitwit.api.v1.dto.request.TagRequest;
 import com.knitwit.api.v1.dto.response.TagResponse;
-import com.knitwit.mapper.TagMapper;
+import com.knitwit.api.v1.dto.mapper.TagMapper;
 import com.knitwit.model.Tag;
 import com.knitwit.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

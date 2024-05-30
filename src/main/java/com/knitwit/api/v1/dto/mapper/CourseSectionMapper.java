@@ -1,4 +1,4 @@
-package com.knitwit.mapper;
+package com.knitwit.api.v1.dto.mapper;
 
 import com.knitwit.api.v1.dto.request.CourseSectionRequest;
 import com.knitwit.api.v1.dto.response.CourseSectionResponse;

@@ -3,7 +3,7 @@
   "auth-server-url": "http://localhost:8080",
   "resource": "KnitWit-Client",
   "credentials": {
-    "secret": "RQ5BuLszpp11CPUA3jJ1bTE2sTswIllB"
+    "secret": "79yYs4qzQcrj7XhmOK9g9HabkIlpyYWp"
   },
   "paths" : [
     {

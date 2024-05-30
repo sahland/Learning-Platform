@@ -5,7 +5,7 @@ import com.knitwit.model.LearningProgress;
 import com.knitwit.model.User;
 import com.knitwit.repository.LearningProgressRepository;
 import com.knitwit.repository.CourseSectionRepository;
-import com.knitwit.mapper.LearningProgressMapper;
+import com.knitwit.api.v1.dto.mapper.LearningProgressMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

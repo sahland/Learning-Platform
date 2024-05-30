@@ -2,7 +2,7 @@ package com.knitwit.api.v1.controller;
 
 import com.knitwit.api.v1.dto.request.CourseRatingRequest;
 import com.knitwit.api.v1.dto.response.CourseRatingResponse;
-import com.knitwit.mapper.CourseRatingMapper;
+import com.knitwit.api.v1.dto.mapper.CourseRatingMapper;
 import com.knitwit.model.CourseRating;
 import com.knitwit.service.CourseRatingService;
 import io.swagger.v3.oas.annotations.Operation;

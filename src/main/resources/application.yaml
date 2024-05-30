@@ -12,19 +12,13 @@ spring:
     oauth2:
       resourceserver:
         jwt:
+#          issuer-uri: http://keycloak:8080/realms/KnitWit-Realm
           issuer-uri: http://localhost:8080/realms/KnitWit-Realm
-
-#  security:
-#    oauth2:
-#      resourceserver:
-#        opaquetoken:
-#          client-id: KnitWit-Client
-#          client-secret: RQ5BuLszpp11CPUA3jJ1bTE2sTswIllB
-#          introspection-uri: http://localhost:8080/realms/KnitWit-Realm/protocol/openid-connect/token/introspect
 
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/KnitWit
+#    url: jdbc:postgresql://postgres:5432/KnitWit
     username: postgres
     password: postgres
     validationQuery: SELECT 1
@@ -37,12 +31,14 @@ spring:
 
 minio:
   url: http://localhost:9000
+#  url: http://minio:9000
   username: knitwitadmin
   password: knitwitadmin
   bucketName: knitwit
 
 realm: KnitWit-Realm
 server-url: http://localhost:8080
+#server-url: http://keycloak:8080
 client-id: admin-cli
 grant-type: password
 name: admin
@@ -52,7 +48,7 @@ springdoc:
   swagger-ui:
     oauth:
       client-id: KnitWit-Client
-      client-secret: RQ5BuLszpp11CPUA3jJ1bTE2sTswIllB
+      client-secret: 79yYs4qzQcrj7XhmOK9g9HabkIlpyYWp
 
 server:
   port: 8081

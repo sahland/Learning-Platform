@@ -1,4 +1,4 @@
-package com.knitwit.mapper;
+package com.knitwit.api.v1.dto.mapper;
 
 import com.knitwit.api.v1.dto.request.TagRequest;
 import com.knitwit.api.v1.dto.response.TagResponse;

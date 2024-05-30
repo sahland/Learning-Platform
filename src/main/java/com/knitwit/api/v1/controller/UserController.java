@@ -3,7 +3,7 @@ package com.knitwit.api.v1.controller;
 
 import com.knitwit.api.v1.dto.request.UserRequest;
 import com.knitwit.api.v1.dto.response.UserResponse;
-import com.knitwit.mapper.UserMapper;
+import com.knitwit.api.v1.dto.mapper.UserMapper;
 import com.knitwit.model.Course;
 import com.knitwit.model.User;
 import com.knitwit.service.UserService;

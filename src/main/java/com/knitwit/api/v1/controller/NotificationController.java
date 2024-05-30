@@ -2,7 +2,7 @@ package com.knitwit.api.v1.controller;
 
 import com.knitwit.api.v1.dto.request.NotificationRequest;
 import com.knitwit.api.v1.dto.response.NotificationResponse;
-import com.knitwit.mapper.NotificationMapper;
+import com.knitwit.api.v1.dto.mapper.NotificationMapper;
 import com.knitwit.model.Notification;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;

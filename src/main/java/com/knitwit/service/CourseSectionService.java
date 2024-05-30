@@ -4,7 +4,7 @@ import com.knitwit.api.v1.dto.request.CourseSectionRequest;
 import com.knitwit.model.CourseSection;
 import com.knitwit.repository.CourseSectionRepository;
 import com.knitwit.repository.CourseRepository;
-import com.knitwit.mapper.CourseSectionMapper;
+import com.knitwit.api.v1.dto.mapper.CourseSectionMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
