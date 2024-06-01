@@ -1,6 +1,7 @@
 package com.knitwit.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.knitwit.enums.CourseStatus;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -32,12 +32,4 @@ public class CourseSectionController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
-    @Operation(summary = "Создать новый раздел курса")
-    @PostMapping
-    public ResponseEntity<CourseSectionResponse> createSection(@RequestBody CourseSectionRequest request) {
-        CourseSection section = courseSectionService.createSection(request);
-        CourseSectionResponse response = courseSectionMapper.toResponse(section);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
 }

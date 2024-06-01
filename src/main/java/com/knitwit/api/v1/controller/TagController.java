@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -44,7 +45,7 @@ public class TagController {
     @GetMapping("/all")
     public ResponseEntity<List<TagResponse>> getAllTags() {
         List<Tag> tags = tagService.getAllTags();
-        List<TagResponse> responses = tagMapper.toResponseList(tags);
+        List<TagResponse> responses = tagMapper.toResponseList((Set<Tag>) tags);
         return ResponseEntity.ok(responses);
     }
 

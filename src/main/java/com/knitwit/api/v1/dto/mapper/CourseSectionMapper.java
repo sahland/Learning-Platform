@@ -8,6 +8,10 @@ import com.knitwit.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class CourseSectionMapper {
@@ -34,5 +38,11 @@ public class CourseSectionMapper {
         response.setContent(section.getContent());
         response.setSectionNumber(section.getSectionNumber());
         return response;
+    }
+
+    public List<CourseSectionResponse> toResponseList(Set<CourseSection> sections) {
+        return sections.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 }

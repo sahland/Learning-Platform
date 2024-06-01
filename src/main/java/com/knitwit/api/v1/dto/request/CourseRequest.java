@@ -8,7 +8,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class CourseWithSectionsAndTagsRequest {
+public class CourseRequest {
     private Course course;
     private List<CourseSection> sections;
     private List<Tag> tags;

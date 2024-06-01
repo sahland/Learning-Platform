@@ -136,14 +136,12 @@ public class UserService {
     public Response createUserInKeycloak(UserRequest userRequest) {
         UserRepresentation userRep = mapUserRepFromRequest(userRequest);
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
-
-        // Проверка на корректность инициализации keycloak и realm
         if (keycloak == null) {
-            throw new RuntimeException("Keycloak instance is not initialized.");
+            throw new RuntimeException("Экземпляр Keycloak не инициализирован.");
         }
 
         if (realm == null || realm.isEmpty()) {
-            throw new RuntimeException("Realm is not configured correctly.");
+            throw new RuntimeException("Realm настроен неправильно.");
         }
 
         return keycloak.realm(realm).users().create(userRep);

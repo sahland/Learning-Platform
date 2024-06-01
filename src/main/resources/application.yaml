@@ -12,8 +12,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-#          issuer-uri: http://keycloak:8080/realms/KnitWit-Realm
           issuer-uri: http://localhost:8080/realms/KnitWit-Realm
+#          issuer-uri: http://keycloak:8080/realms/KnitWit-Realm
 
   datasource:
     driverClassName: org.postgresql.Driver
@@ -48,7 +48,7 @@ springdoc:
   swagger-ui:
     oauth:
       client-id: KnitWit-Client
-      client-secret: 79yYs4qzQcrj7XhmOK9g9HabkIlpyYWp
+      client-secret: drZaprYRwKYR0SlgJENVUsjiPGpmsY2k
 
 server:
   port: 8081

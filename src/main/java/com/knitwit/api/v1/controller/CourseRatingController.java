@@ -62,24 +62,6 @@ public class CourseRatingController {
         }
     }
 
-    @Operation(summary = "Получить оценки пользователя")
-    //admin
-    @GetMapping("/user/{userId}/ratings")
-    public ResponseEntity<List<CourseRatingResponse>> getUserRatings(@PathVariable("userId") int userId) {
-        List<CourseRating> ratings = courseRatingService.getUserRatings(userId);
-        List<CourseRatingResponse> response = courseRatingMapper.toResponseList(ratings);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @Operation(summary = "Получить оценки курса")
-    //admin
-    @GetMapping("/course/{courseId}/ratings")
-    public ResponseEntity<List<CourseRatingResponse>> getCourseRatings(@PathVariable("courseId") int courseId) {
-        List<CourseRating> ratings = courseRatingService.getCourseRatings(courseId);
-        List<CourseRatingResponse> response = courseRatingMapper.toResponseList(ratings);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
     @Operation(summary = "Получить среднюю оценку курса")
     //user
     @GetMapping("/course/{courseId}/average-rating")

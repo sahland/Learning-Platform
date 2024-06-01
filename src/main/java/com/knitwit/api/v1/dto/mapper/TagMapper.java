@@ -6,6 +6,7 @@ import com.knitwit.model.Tag;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -23,7 +24,7 @@ public class TagMapper {
         return response;
     }
 
-    public List<TagResponse> toResponseList(List<Tag> tags) {
+    public List<TagResponse> toResponseList(Set<Tag> tags) {
         return tags.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
