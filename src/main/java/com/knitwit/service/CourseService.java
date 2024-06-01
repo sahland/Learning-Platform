@@ -49,35 +49,29 @@ public class CourseService {
         if (sections == null || sections.isEmpty()) {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(def);
-        try {
-            course.setCreator(creator);
-            setSectionNumbersAndCourse(sections, course);
-            course.setStatus(CourseStatus.IN_PROCESSING);
-            course.setPublishedDate(LocalDate.now());
-            Course savedCourse = courseRepository.save(course);
 
-            Set<Tag> savedTags = new HashSet<>();
-            for (Tag tag : tags) {
-                List<Tag> existingTags = tagRepository.findByTagName(tag.getTagName());
-                if (!existingTags.isEmpty()) {
-                    savedTags.addAll(existingTags);
-                } else {
-                    throw new IllegalArgumentException("Тег с названием " + tag.getTagName() + " не найден.");
-                }
-            }
-            savedCourse.setTags(savedTags);
+        course.setCreator(creator);
+        setSectionNumbersAndCourse(sections, course);
+        course.setStatus(CourseStatus.IN_PROCESSING);
+        course.setPublishedDate(LocalDate.now());
+        Course savedCourse = courseRepository.save(course);
 
-            if (avatarFile != null && !avatarFile.isEmpty()) {
-                uploadCourseAvatar(savedCourse.getCourseId(), avatarFile);
+        Set<Tag> savedTags = new HashSet<>();
+        for (Tag tag : tags) {
+            List<Tag> existingTags = tagRepository.findByTagName(tag.getTagName());
+            if (!existingTags.isEmpty()) {
+                savedTags.addAll(existingTags);
+            } else {
+                throw new IllegalArgumentException("Тег с названием " + tag.getTagName() + " не найден.");
             }
-            transactionManager.commit(status);
-            return savedCourse;
-        } catch (Exception ex) {
-            transactionManager.rollback(status);
-            throw ex;
         }
+        savedCourse.setTags(savedTags);
+
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            uploadCourseAvatar(savedCourse.getCourseId(), avatarFile);
+        }
+
+        return savedCourse;
     }
 
     @Transactional
@@ -91,31 +85,24 @@ public class CourseService {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
 
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(def);
-        try {
-            existingCourse.setTitle(updatedCourse.getTitle());
-            existingCourse.setStatus(CourseStatus.IN_PROCESSING);
-            updateSections(existingCourse, updatedSections);
-            Set<Tag> savedTags = new HashSet<>();
-            for (Tag tag : updatedTags) {
-                List<Tag> existingTags = tagRepository.findByTagName(tag.getTagName());
-                if (!existingTags.isEmpty()) {
-                    savedTags.addAll(existingTags);
-                } else {
-                    throw new IllegalArgumentException("Тег с названием " + tag.getTagName() + " не найден.");
-                }
+        existingCourse.setTitle(updatedCourse.getTitle());
+        existingCourse.setStatus(CourseStatus.IN_PROCESSING);
+        updateSections(existingCourse, updatedSections);
+        Set<Tag> savedTags = new HashSet<>();
+        for (Tag tag : updatedTags) {
+            List<Tag> existingTags = tagRepository.findByTagName(tag.getTagName());
+            if (!existingTags.isEmpty()) {
+                savedTags.addAll(existingTags);
+            } else {
+                throw new IllegalArgumentException("Тег с названием " + tag.getTagName() + " не найден.");
             }
-            existingCourse.setTags(savedTags);
-            if (avatarFile != null && !avatarFile.isEmpty()) {
-                uploadCourseAvatar(existingCourse.getCourseId(), avatarFile);
-            }
-            transactionManager.commit(status);
-            return courseRepository.save(existingCourse);
-        } catch (Exception ex) {
-            transactionManager.rollback(status);
-            throw ex;
         }
+        existingCourse.setTags(savedTags);
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            uploadCourseAvatar(existingCourse.getCourseId(), avatarFile);
+        }
+
+        return courseRepository.save(existingCourse);
     }
 
     public Course getCourseForEditing(int courseId) {
