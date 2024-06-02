@@ -93,6 +93,10 @@ public class UserService {
     @Transactional
     public String uploadUserAvatar(String keycloakLogin, MultipartFile file) {
         try {
+            String contentType = file.getContentType();
+            if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+                throw new IllegalArgumentException("Недопустимый тип файла. Разрешены только файлы JPEG и PNG.");
+            }
             User user = userRepository.findByKeycloakLogin(keycloakLogin)
                     .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
             int userId = user.getUserId();
