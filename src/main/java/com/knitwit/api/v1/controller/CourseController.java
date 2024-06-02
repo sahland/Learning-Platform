@@ -59,11 +59,12 @@ public class CourseController {
         return ResponseEntity.status(HttpStatus.OK).body(courseResponse);
     }
 
+    @Operation(summary = "Редактировать курс")
     @PutMapping(path = "/{courseId}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<CourseResponse> editCourse(
             @PathVariable int courseId,
             @RequestPart("text") String courseJson,
-            @RequestPart("file") MultipartFile avatar,
+            @RequestPart(value = "file", required = false) MultipartFile avatar,
             @AuthenticationPrincipal Jwt jwt) throws IOException {
         String username = jwt.getClaim("preferred_username");
         ObjectMapper objectMapper = new ObjectMapper();

@@ -38,7 +38,6 @@ public class CourseService {
     private final TagRepository tagRepository;
     private final UserRepository userRepository;
     private final CourseSectionRepository courseSectionRepository;
-    private final PlatformTransactionManager transactionManager;
     private final MinioService minioService;
     private final CourseMapper courseMapper;
 
@@ -98,6 +97,7 @@ public class CourseService {
             }
         }
         existingCourse.setTags(savedTags);
+
         if (avatarFile != null && !avatarFile.isEmpty()) {
             uploadCourseAvatar(existingCourse.getCourseId(), avatarFile);
         }
