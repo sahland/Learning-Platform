@@ -3,8 +3,9 @@ package com.knitwit.api.v1.dto.request;
 import lombok.Data;
 
 @Data
-public class UserRequest {
+public class RegistrationUserRequest {
     private String username;
-    private String email;
     private String password;
+    private String confirmPassword;
+    private String email;
 }

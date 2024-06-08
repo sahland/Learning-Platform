@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/progress")
-@SecurityRequirement(name = "Keycloak")
 public class LearningProgressController {
 
     private final LearningProgressService learningProgressService;
@@ -27,7 +26,7 @@ public class LearningProgressController {
 
     private User getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
         String username = jwt.getClaim("preferred_username");
-        return userRepository.findByKeycloakLogin(username)
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден по логину: " + username));
     }
 

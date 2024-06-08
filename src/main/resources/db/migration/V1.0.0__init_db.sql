@@ -3,7 +3,22 @@ CREATE TABLE users
     user_id         SERIAL PRIMARY KEY NOT NULL,
     nickname        VARCHAR(25),
     user_avatar_key VARCHAR(255),
-    keycloak_login  VARCHAR(255)
+    username        VARCHAR(30)        NOT NULL UNIQUE,
+    email           VARCHAR(50) UNIQUE,
+    password        VARCHAR(80)        NOT NULL
+);
+
+CREATE TABLE role
+(
+    role_id SERIAL primary key NOT NULL,
+    name    VARCHAR(50)        not null
+);
+
+CREATE TABLE users_roles
+(
+    user_role_id SERIAL PRIMARY KEY                 NOT NULL,
+    user_id      INTEGER REFERENCES users (user_id) NOT NULL,
+    role_id      INTEGER REFERENCES role (role_id)  NOT NULL
 );
 
 CREATE TABLE notification

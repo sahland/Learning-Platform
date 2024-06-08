@@ -11,9 +11,9 @@ import com.knitwit.model.Tag;
 import com.knitwit.model.User;
 import com.knitwit.repository.CourseRepository;
 import com.knitwit.repository.UserRepository;
+import com.knitwit.service.AuthService;
 import com.knitwit.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,25 +35,23 @@ import java.util.Set;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/courses")
-@SecurityRequirement(name = "Keycloak")
 public class CourseController {
 
     private final CourseService courseService;
     private final CourseMapper courseMapper;
     private final UserRepository userRepository;
-    private final CourseRepository courseRepository;
+    private final AuthService authService;
 
     @Operation(summary = "Создать курс")
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     //user
     public ResponseEntity<CourseResponse> createCourse(
             @RequestPart("text") String courseJson,
-            @RequestPart("file") MultipartFile avatar,
-            @AuthenticationPrincipal Jwt jwt) throws IOException {
-        String username = jwt.getClaim("preferred_username");
+            @RequestPart("file") MultipartFile avatar) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         CourseRequest request = objectMapper.readValue(courseJson, CourseRequest.class);
+        String username = authService.getCurrentUsername(); // Получаем текущего пользователя
         Course createdCourse = courseService.createCourse(request.getCourse(), request.getSections(), request.getTags(), username, avatar);
         CourseResponse courseResponse = courseMapper.toResponse(createdCourse);
         return ResponseEntity.status(HttpStatus.OK).body(courseResponse);
@@ -71,9 +69,6 @@ public class CourseController {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         CourseRequest request = objectMapper.readValue(courseJson, CourseRequest.class);
         Course courseToEdit = courseService.getCourseForEditing(courseId);
-        if (!courseToEdit.getCreator().getKeycloakLogin().equals(username)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
         request.getCourse().setTitle(request.getCourse().getTitle());
         Course updatedCourse = courseService.editCourse(courseId, request.getCourse(), request.getSections(), request.getTags(), username, avatar);
         CourseResponse courseResponse = courseMapper.toResponse(updatedCourse);
@@ -214,7 +209,7 @@ public class CourseController {
     @PreAuthorize("hasRole('user')")
     public ResponseEntity<Void> subscribeToCourse(@PathVariable int courseId, @AuthenticationPrincipal Jwt jwt) {
         String username = jwt.getClaim("preferred_username");
-        User user = userRepository.findByKeycloakLogin(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
         courseService.subscribeToCourse(user.getUserId(), courseId);
         return ResponseEntity.ok().build();
@@ -225,7 +220,7 @@ public class CourseController {
     @PreAuthorize("hasRole('user')")
     public ResponseEntity<Void> unsubscribeFromCourse(@PathVariable int courseId, @AuthenticationPrincipal Jwt jwt) {
         String username = jwt.getClaim("preferred_username");
-        User user = userRepository.findByKeycloakLogin(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
         courseService.unsubscribeFromCourse(user.getUserId(), courseId);
         return ResponseEntity.ok().build();

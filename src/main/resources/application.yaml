@@ -7,14 +7,6 @@ spring:
         show_sql: true
         format_sql: true
 
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/realms/KnitWit-Realm
-#          issuer-uri: http://keycloak:8080/realms/KnitWit-Realm
-
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/KnitWit
@@ -28,6 +20,8 @@ spring:
     enabled: true
     baselineOnMigrate: true
     locations: classpath:db/migration
+  main:
+    allow-circular-references: true
 
 minio:
   url: http://localhost:9000
@@ -36,19 +30,11 @@ minio:
   password: knitwitadmin
   bucketName: knitwit
 
-realm: KnitWit-Realm
-server-url: http://localhost:8080
-#server-url: http://keycloak:8080
-client-id: admin-cli
-grant-type: password
-name: admin
-password: admin
 
-springdoc:
-  swagger-ui:
-    oauth:
-      client-id: KnitWit-Client
-      client-secret: drZaprYRwKYR0SlgJENVUsjiPGpmsY2k
+jwt:
+  secret: jfdnusighfdoishgfuishfidsb812y37832y47832e1242234324
+  lifetime: 30m
+
 
 server:
   port: 8081

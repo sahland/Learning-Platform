@@ -43,7 +43,7 @@ public class CourseService {
 
     @Transactional
     public Course createCourse(Course course, List<CourseSection> sections, List<Tag> tags, String username, MultipartFile avatarFile) {
-        User creator = userRepository.findByKeycloakLogin(username)
+        User creator = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь с указанным логином не найден: " + username));
         if (sections == null || sections.isEmpty()) {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
@@ -75,7 +75,7 @@ public class CourseService {
 
     @Transactional
     public Course editCourse(int courseId, Course updatedCourse, List<CourseSection> updatedSections, List<Tag> updatedTags, String username, MultipartFile avatarFile) {
-        User editor = userRepository.findByKeycloakLogin(username)
+        User editor = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь с указанным логином не найден: " + username));
         Course existingCourse = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Курс с указанным идентификатором не найден: " + courseId));

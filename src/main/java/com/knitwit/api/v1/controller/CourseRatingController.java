@@ -19,7 +19,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/ratings")
-@SecurityRequirement(name = "Keycloak")
 public class CourseRatingController {
 
     private final CourseRatingService courseRatingService;

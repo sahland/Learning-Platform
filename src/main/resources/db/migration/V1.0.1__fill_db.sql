@@ -1,10 +1,26 @@
 -- Вставка данных в таблицу users
-INSERT INTO users (nickname, user_avatar_key, keycloak_login)
+INSERT INTO users (nickname, user_avatar_key, username, email, password)
 SELECT
     substr(md5(random()::text), 1, 10),
     'user_avatar_' || md5(random()::text),
+    substr(md5(random()::text), 1, 10),
+    substr(md5(random()::text), 1, 10) || '@example.com',
     md5(random()::text)
 FROM generate_series(1, 100);
+
+-- Вставка данных в таблицу role
+INSERT INTO role (name)
+VALUES
+    ('ROLE_USER'),
+    ('ROLE_ADMIN');
+
+-- Вставка данных в таблицу users_roles
+INSERT INTO users_roles (user_id, role_id)
+SELECT u.user_id, r.role_id
+FROM users u
+         JOIN role r ON r.name = 'ROLE_USER'
+ORDER BY random()
+LIMIT 100;
 
 -- Вставка данных в таблицу tag
 INSERT INTO tag (tag_name)
@@ -72,7 +88,6 @@ FROM course
          CROSS JOIN generate_series(1, 10) as gs
 ORDER BY random()
 LIMIT 100;
-
 
 -- Генерация случайных оценок для 100 строк таблицы course_rating
 INSERT INTO course_rating (user_id, course_id, value)

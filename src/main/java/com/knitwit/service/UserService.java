@@ -1,46 +1,83 @@
 package com.knitwit.service;
 
-import com.knitwit.api.v1.dto.request.UserRequest;
-import com.knitwit.config.security.KeycloakSecurityUtil;
+import com.knitwit.api.v1.dto.request.RegistrationUserRequest;
 import com.knitwit.model.Course;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;
-import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
 
-    private final UserRepository userRepository;
-    private final MinioService minioService;
-    private final KeycloakSecurityUtil keycloakUtil;
-
-    @Value("${realm}")
-    private String realm;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private MinioService minioService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RoleService roleService;
 
     @Transactional
-    public User createUser(User user) {
-        if (userRepository.existsByKeycloakLogin(user.getKeycloakLogin())) {
-            throw new IllegalArgumentException("Пользователь с этим логином уже существует.");
-        }
+    public User createNewUser(RegistrationUserRequest registrationUserRequest) {
+        User user = new User();
+        user.setEmail(registrationUserRequest.getEmail());
+        user.setUsername(registrationUserRequest.getUsername());
+        user.setPassword(passwordEncoder.encode(registrationUserRequest.getPassword()));
+        String nickname = "user";
+        user.setNickname(nickname);
+        user.setRoles(List.of(roleService.getUserRole()));
+        return userRepository.save(user);
+    }
 
-        User savedUser = userRepository.save(user);
-        savedUser.setNickname("user" + savedUser.getUserId());
-        return userRepository.save(savedUser);
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    @Transactional
+    public User updateEmail(String username, String newEmail) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+        user.setEmail(newEmail);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updatePassword(String username, String newPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(
+                String.format("Пользователь '%s' не найден", username)
+        ));
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                user.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList())
+        );
     }
 
     public Iterable<User> getAllUsers() {
@@ -54,32 +91,16 @@ public class UserService {
 
     @Transactional
     public User getUserProfile(String username) {
-        return userRepository.findByKeycloakLogin(username)
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
     @Transactional
     public User updateNickname(String username, String newNickname) {
-        User user = userRepository.findByKeycloakLogin(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
         user.setNickname(newNickname);
         return userRepository.save(user);
-    }
-
-    @Transactional
-    public User updateEmailInKeycloak(String username, String newEmail) {
-        keycloakUtil.updateUserEmail(username, newEmail);
-        return userRepository.findByKeycloakLogin(username)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-    }
-
-    @Transactional
-    public User updatePasswordInKeycloak(String username, String newPassword) {
-        CredentialRepresentation credential = new CredentialRepresentation();
-        credential.setType(CredentialRepresentation.PASSWORD);
-        credential.setValue(newPassword);
-        keycloakUtil.updateUserPassword(username, credential);
-        return userRepository.findByKeycloakLogin(username).orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
     public Set<Course> getAllSubscribedCourses(User user) {
@@ -91,13 +112,13 @@ public class UserService {
     }
 
     @Transactional
-    public String uploadUserAvatar(String keycloakLogin, MultipartFile file) {
+    public String uploadUserAvatar(String username, MultipartFile file) {
         try {
             String contentType = file.getContentType();
             if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
                 throw new IllegalArgumentException("Недопустимый тип файла. Разрешены только файлы JPEG и PNG.");
             }
-            User user = userRepository.findByKeycloakLogin(keycloakLogin)
+            User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
             int userId = user.getUserId();
             String objectName = "user_avatars/user_" + userId + "_avatar.jpg";
@@ -113,59 +134,5 @@ public class UserService {
         } catch (IOException e) {
             throw new RuntimeException("Не удалось загрузить аватар пользователя", e);
         }
-    }
-
-    public User getUserByKeycloakUsername(String username) {
-        UserRepresentation keycloakUser = keycloakUtil.getUserByUsername(username);
-        return userRepository.findByKeycloakLogin(keycloakUser.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-    }
-
-    @Transactional
-    public User registerUser(UserRequest userRequest) {
-        Response response = createUserInKeycloak(userRequest);
-        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-            String keycloakLogin = userRequest.getLogin();
-            User user = mapUserFromRequest(userRequest);
-            user.setKeycloakLogin(keycloakLogin);
-            return createUser(user);
-        } else if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
-            throw new IllegalArgumentException("Пользователь уже существует");
-        } else {
-            throw new RuntimeException("Ошибка при создании пользователя в Keycloak: " + response.getStatus());
-        }
-    }
-
-    @Transactional
-    public Response createUserInKeycloak(UserRequest userRequest) {
-        UserRepresentation userRep = mapUserRepFromRequest(userRequest);
-        Keycloak keycloak = keycloakUtil.getKeycloakInstance();
-        if (keycloak == null) {
-            throw new RuntimeException("Экземпляр Keycloak не инициализирован.");
-        }
-
-        if (realm == null || realm.isEmpty()) {
-            throw new RuntimeException("Realm настроен неправильно.");
-        }
-
-        return keycloak.realm(realm).users().create(userRep);
-    }
-
-    public UserRepresentation mapUserRepFromRequest(UserRequest userRequest) {
-        UserRepresentation userRep = new UserRepresentation();
-        userRep.setUsername(userRequest.getLogin());
-        userRep.setEmail(userRequest.getEmail());
-        userRep.setEnabled(true);
-        userRep.setEmailVerified(true);
-        CredentialRepresentation credential = new CredentialRepresentation();
-        credential.setType(CredentialRepresentation.PASSWORD);
-        credential.setValue(userRequest.getPassword());
-        userRep.setCredentials(Arrays.asList(credential));
-        return userRep;
-    }
-
-    public User mapUserFromRequest(UserRequest userRequest) {
-        User user = new User();
-        return user;
     }
 }

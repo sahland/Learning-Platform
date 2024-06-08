@@ -66,7 +66,7 @@ public class CourseRatingService {
     }
 
     public int getUserIdByUsername(String username) {
-        return userRepository.findByKeycloakLogin(username)
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден по логину: " + username))
                 .getUserId();
     }

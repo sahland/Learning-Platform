@@ -9,7 +9,9 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
     public User toEntity(UserRequest userRequest) {
         User user = new User();
-        user.setKeycloakLogin(userRequest.getLogin());
+        user.setUsername(userRequest.getUsername());
+        user.setEmail(userRequest.getEmail());
+        user.setPassword(userRequest.getPassword());
         return user;
     }
 
@@ -18,7 +20,7 @@ public class UserMapper {
         response.setUserId(user.getUserId());
         response.setNickname(user.getNickname());
         response.setAvatarKey(user.getUserAvatarKey());
-        response.setLogin(user.getKeycloakLogin());
+        response.setUsername(user.getUsername());
         return response;
     }
 }

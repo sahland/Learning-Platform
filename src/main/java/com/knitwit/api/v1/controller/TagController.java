@@ -17,7 +17,6 @@ import java.util.Set;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/tags")
-@SecurityRequirement(name = "Keycloak")
 public class TagController {
 
     private final TagService tagService;
@@ -45,7 +44,7 @@ public class TagController {
     @GetMapping("/all")
     public ResponseEntity<List<TagResponse>> getAllTags() {
         List<Tag> tags = tagService.getAllTags();
-        List<TagResponse> responses = tagMapper.toResponseList((Set<Tag>) tags);
+        List<TagResponse> responses = tagMapper.toResponseList(tags);
         return ResponseEntity.ok(responses);
     }
 

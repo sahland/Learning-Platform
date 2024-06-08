@@ -21,7 +21,6 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/notifications")
-@SecurityRequirement(name = "Keycloak")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -33,7 +32,7 @@ public class NotificationController {
     public ResponseEntity<NotificationResponse> createNotification(@RequestBody NotificationRequest request,
                                                                    @AuthenticationPrincipal Jwt jwt) {
         String username = jwt.getClaim("preferred_username");
-        Optional<User> creator = userRepository.findByKeycloakLogin(username);
+        Optional<User> creator = userRepository.findByUsername(username);
         Notification notification = notificationMapper.toEntity(request);
         notification.setSenderId(creator.get().getUserId());
         Notification savedNotification = notificationService.createNotification(notification);
