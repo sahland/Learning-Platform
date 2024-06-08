@@ -11,8 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
-                title = "tp-9.1 KnitWit",
-                contact = @Contact(name = "Акимушкин Евгений"),
+                title = "tp-9.5 KnitWit",
                 version = "1.0.3"),
         security = @SecurityRequirement(name = "BearerAuth"))
 @SecurityScheme(

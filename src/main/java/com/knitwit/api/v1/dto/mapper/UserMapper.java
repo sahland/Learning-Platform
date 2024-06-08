@@ -21,6 +21,7 @@ public class UserMapper {
         response.setNickname(user.getNickname());
         response.setAvatarKey(user.getUserAvatarKey());
         response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
         return response;
     }
 }

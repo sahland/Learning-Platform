@@ -2,6 +2,7 @@ package com.knitwit.service;
 
 import com.knitwit.api.v1.dto.request.RegistrationUserRequest;
 import com.knitwit.model.Course;
+import com.knitwit.model.Role;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -134,5 +135,14 @@ public class UserService implements UserDetailsService {
         } catch (IOException e) {
             throw new RuntimeException("Не удалось загрузить аватар пользователя", e);
         }
+    }
+
+    @Transactional
+    public User addAdminRoleToUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+        Role adminRole = roleService.getAdminRole();
+        user.getRoles().add(adminRole);
+        return userRepository.save(user);
     }
 }

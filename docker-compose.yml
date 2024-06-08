@@ -45,23 +45,6 @@ services:
     networks:
       - knitwit-network
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:latest
-    container_name: keycloak
-    environment:
-      KEYCLOAK_ADMIN: knitwitadmin
-      KEYCLOAK_ADMIN_PASSWORD: knitwitadmin
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-    volumes:
-      - keycloak-data:/opt/jboss/keycloak/standalone/data
-    command:
-      - start-dev
-    networks:
-      - knitwit-network
-
   app:
     build:
       context: .
@@ -74,16 +57,11 @@ services:
       SPRING_MINIO_URL: http://minio:9000
       SPRING_MINIO_USERNAME: knitwitadmin
       SPRING_MINIO_PASSWORD: knitwitadmin
-      KEYCLOAK_URL: http://keycloak:8080/auth
-      KEYCLOAK_REALM: KnitWit-Realm
-      KEYCLOAK_CLIENT_ID: KnitWit-Client
-      KEYCLOAK_CLIENT_SECRET: drZaprYRwKYR0SlgJENVUsjiPGpmsY2k
     ports:
       - "8081:8081"
     depends_on:
       - postgres
       - minio
-      - keycloak
     networks:
       - knitwit-network
 
@@ -91,7 +69,6 @@ volumes:
   postgres-data:
   minio-data:
   pgadmin-data:
-  keycloak-data:
 
 networks:
   knitwit-network:

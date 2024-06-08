@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,8 +21,9 @@ public class CourseSectionController {
     private final CourseSectionService courseSectionService;
     private final CourseSectionMapper courseSectionMapper;
 
-    @Operation(summary = "Получить раздел курса по ID")
+    @Operation(summary = "Получить раздел курса по ID (ADMIN)")
     @GetMapping("/{sectionId}")
+    @Secured("ROLE_ADMIN")
     public ResponseEntity<CourseSectionResponse> getSectionById(@PathVariable int sectionId) {
         CourseSection section = courseSectionService.getSectionById(sectionId);
         if (section != null) {
