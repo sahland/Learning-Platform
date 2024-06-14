@@ -8,8 +8,8 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_DB: KnitWit
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: knitwitadmin
+      POSTGRES_PASSWORD: knitwitadminpass
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
@@ -52,8 +52,8 @@ services:
     container_name: knitwit_app
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/KnitWit
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_USERNAME: knitwitadmin
+      SPRING_DATASOURCE_PASSWORD: knitwitadminpass
       SPRING_MINIO_URL: http://minio:9000
       SPRING_MINIO_USERNAME: knitwitadmin
       SPRING_MINIO_PASSWORD: knitwitadmin

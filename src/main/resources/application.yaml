@@ -9,10 +9,10 @@ spring:
 
   datasource:
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/KnitWit
-#    url: jdbc:postgresql://postgres:5432/KnitWit
-    username: postgres
-    password: postgres
+#    url: jdbc:postgresql://localhost:5432/KnitWit
+    url: jdbc:postgresql://postgres:5432/KnitWit
+    username: KnitWit
+    password: KnitWit
     validationQuery: SELECT 1
     testOnBorrow: true
 
@@ -24,17 +24,15 @@ spring:
     allow-circular-references: true
 
 minio:
-  url: http://localhost:9000
-#  url: http://minio:9000
+#  url: http://localhost:9000
+  url: http://minio:9000
   username: knitwitadmin
   password: knitwitadmin
   bucketName: knitwit
 
-
 jwt:
   secret: jfdnusighfdoishgfuishfidsb812y37832y47832e1242234324
-  lifetime: 30m
-
+  lifetime: 7d
 
 server:
   port: 8081
