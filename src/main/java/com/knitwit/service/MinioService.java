@@ -34,7 +34,6 @@ public class MinioService {
     @Transactional
     public String uploadFile(String objectName, InputStream inputStream, String contentType) {
         try {
-            // Устанавливаем метаданные для Content-Type
             Map<String, String> headers = new HashMap<>();
             headers.put("Content-Type", contentType);
 
