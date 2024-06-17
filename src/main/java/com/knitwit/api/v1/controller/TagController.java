@@ -6,15 +6,12 @@ import com.knitwit.api.v1.dto.mapper.TagMapper;
 import com.knitwit.model.Tag;
 import com.knitwit.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -68,5 +65,13 @@ public class TagController {
         Tag tag = tagService.getTagByName(tagName);
         TagResponse response = tagMapper.toResponse(tag);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Удаление тега (ADMIN)")
+    @DeleteMapping("/{tagId}")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<Void> deleteTag(@PathVariable int tagId) {
+        tagService.deleteTag(tagId);
+        return ResponseEntity.ok().build();
     }
 }

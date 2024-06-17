@@ -16,7 +16,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "Авторизирвоаться")
+    @Operation(summary = "Авторизироваться")
     @PostMapping("/auth")
     public ResponseEntity<?> createAuthToken(@RequestBody JwtRequest authRequest){
         return authService.createAuthToken(authRequest);

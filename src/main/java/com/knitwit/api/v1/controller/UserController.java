@@ -1,10 +1,15 @@
 package com.knitwit.api.v1.controller;
 
 
+import com.knitwit.api.v1.dto.mapper.CourseMapper;
+import com.knitwit.api.v1.dto.response.CourseResponse;
 import com.knitwit.api.v1.dto.response.UserResponse;
 import com.knitwit.api.v1.dto.mapper.UserMapper;
+import com.knitwit.model.Course;
 import com.knitwit.model.User;
 import com.knitwit.service.AuthService;
+import com.knitwit.service.CourseService;
+import com.knitwit.service.LearningProgressService;
 import com.knitwit.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -28,6 +34,8 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final AuthService authService;
+    private final CourseMapper courseMapper;
+    private final LearningProgressService learningProgressService;
 
     @Operation(summary = "Получение списка всех пользователей (ADMIN)")
     @Secured("ROLE_ADMIN")
@@ -103,5 +111,31 @@ public class UserController {
     public ResponseEntity<UserResponse> addAdminRoleToUser(@RequestParam String username) {
         userService.addAdminRoleToUser(username);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Получение курсов, на которые подписан пользователь (USER)")
+    @Secured("ROLE_USER")
+    @GetMapping("/subscribed-courses")
+    public ResponseEntity<List<CourseResponse>> getSubscribedCourses() {
+        String username = authService.getCurrentUsername();
+        User user = userService.getUserProfile(username);
+        Set<Course> subscribedCourses = userService.getAllSubscribedCourses(user);
+        List<CourseResponse> response = subscribedCourses.stream()
+                .map(courseMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Получить список курсов, в которых пользователь завершил все разделы (USER)")
+    @Secured("ROLE_USER")
+    @GetMapping("/completed-courses")
+    public ResponseEntity<List<CourseResponse>> getCompletedCoursesForUser() {
+        String username = authService.getCurrentUsername();
+        User user = userService.getUserProfile(username);
+        List<Course> completedCourses = learningProgressService.getCompletedCoursesForUser(user.getUserId());
+        List<CourseResponse> response = completedCourses.stream()
+                .map(courseMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 }

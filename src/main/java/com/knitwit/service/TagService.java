@@ -1,5 +1,6 @@
 package com.knitwit.service;
 
+import com.knitwit.model.Course;
 import com.knitwit.model.Tag;
 import com.knitwit.repository.TagRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -49,5 +50,20 @@ public class TagService {
     public Tag getTagById(int tagId) {
         return tagRepository.findById(tagId)
                 .orElseThrow(() -> new IllegalArgumentException("Тег не найден по id: " + tagId));
+    }
+
+    @Transactional
+    public void deleteTag(int tagId) {
+        Optional<Tag> optionalTag = tagRepository.findById(tagId);
+        if (optionalTag.isPresent()) {
+            Tag tag = optionalTag.get();
+            for (Course course : tag.getCourses()) {
+                course.getTags().remove(tag);
+            }
+            tag.getCourses().clear();
+            tagRepository.delete(tag);
+        } else {
+            throw new IllegalArgumentException("Тег не найден по id: " + tagId);
+        }
     }
 }
