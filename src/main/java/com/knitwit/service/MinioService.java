@@ -20,7 +20,7 @@ public class MinioService {
 
     @Value("${minio.bucketName}")
     private String bucketName;
-
+    
     @Transactional
     @PostConstruct
     public void init() throws Exception {

@@ -291,7 +291,7 @@ public class CourseService {
             if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
                 throw new IllegalArgumentException("Недопустимый тип файла. Разрешены только файлы JPEG и PNG.");
             }
-            String objectName = "course_avatars/course_" + courseId + "_avatar.jpg";
+            String objectName = "course_avatars/course_" + courseId + "_avatar.png";
             Course course = getCourseById(courseId);
             String previousAvatarKey = course.getCourseAvatarKey();
             if (previousAvatarKey != null) {

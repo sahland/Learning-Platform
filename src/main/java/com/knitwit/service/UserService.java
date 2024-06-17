@@ -122,7 +122,7 @@ public class UserService implements UserDetailsService {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
             int userId = user.getUserId();
-            String objectName = "user_avatars/user_" + userId + "_avatar.jpg";
+            String objectName = "user_avatars/user_" + userId + "_avatar.png";
             String previousAvatarKey = user.getUserAvatarKey();
             if (previousAvatarKey != null) {
                 minioService.deleteFile(previousAvatarKey);
