@@ -11,6 +11,8 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -30,12 +32,17 @@ public class MinioService {
     }
 
     @Transactional
-    public String uploadFile(String objectName, InputStream inputStream) {
+    public String uploadFile(String objectName, InputStream inputStream, String contentType) {
         try {
+            // Устанавливаем метаданные для Content-Type
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Content-Type", contentType);
+
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(bucketName)
                     .object(objectName)
                     .stream(inputStream, inputStream.available(), -1)
+                    .headers(headers)
                     .build());
             return objectName;
         } catch (Exception e) {

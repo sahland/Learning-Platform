@@ -29,6 +29,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.io.Files.getFileExtension;
+
 @Schema(description = "Сервис для работы с курсами")
 @Service
 @RequiredArgsConstructor
@@ -291,14 +293,16 @@ public class CourseService {
             if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
                 throw new IllegalArgumentException("Недопустимый тип файла. Разрешены только файлы JPEG и PNG.");
             }
-            String objectName = "course_avatars/course_" + courseId + "_avatar.png";
+            String originalFilename = file.getOriginalFilename();
+            String fileExtension = getFileExtension(originalFilename);
+            String objectName = "course_avatars/course_" + courseId + "_avatar." + fileExtension;
             Course course = getCourseById(courseId);
             String previousAvatarKey = course.getCourseAvatarKey();
             if (previousAvatarKey != null) {
                 minioService.deleteFile(previousAvatarKey);
             }
             InputStream inputStream = file.getInputStream();
-            minioService.uploadFile(objectName, inputStream);
+            minioService.uploadFile(objectName, inputStream, contentType);
             course.setCourseAvatarKey(objectName);
             courseRepository.save(course);
 

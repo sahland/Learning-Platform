@@ -23,6 +23,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.io.Files.getFileExtension;
+
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
@@ -122,13 +124,15 @@ public class UserService implements UserDetailsService {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
             int userId = user.getUserId();
-            String objectName = "user_avatars/user_" + userId + "_avatar.png";
+            String originalFilename = file.getOriginalFilename();
+            String fileExtension = getFileExtension(originalFilename);
+            String objectName = "user_avatars/user_" + userId + "_avatar." + fileExtension;
             String previousAvatarKey = user.getUserAvatarKey();
             if (previousAvatarKey != null) {
                 minioService.deleteFile(previousAvatarKey);
             }
             InputStream inputStream = file.getInputStream();
-            minioService.uploadFile(objectName, inputStream);
+            minioService.uploadFile(objectName, inputStream, contentType);
             user.setUserAvatarKey(objectName);
             userRepository.save(user);
             return objectName;
