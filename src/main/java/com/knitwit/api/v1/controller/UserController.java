@@ -106,7 +106,8 @@ public class UserController {
         return ResponseEntity.ok(avatarUrl);
     }
 
-    @Operation(summary = "Добавить роль администратора пользователю")
+    @Operation(summary = "Добавить роль администратора пользователю (ADMIN)")
+    @Secured("ROLE_ADMIN")
     @PostMapping("/{username}/addAdminRole")
     public ResponseEntity<UserResponse> addAdminRoleToUser(@RequestParam String username) {
         userService.addAdminRoleToUser(username);

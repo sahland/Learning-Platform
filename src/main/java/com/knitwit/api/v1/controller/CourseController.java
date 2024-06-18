@@ -81,11 +81,11 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
-    @Operation(summary = "Получить курс по ID (USER)" )
+    @Operation(summary = "Получить подтверждённый курс по ID (USER)" )
     @Secured("ROLE_USER")
     @GetMapping("/{courseId}")
     public ResponseEntity<CourseResponse> getCourseById(@PathVariable int courseId) {
-        Course course = courseService.getCourseById(courseId);
+        Course course = courseService.getConfirmedCourseById(courseId);
         CourseResponse courseResponse = courseMapper.toResponse(course);
         return ResponseEntity.ok(courseResponse);
     }
@@ -105,7 +105,7 @@ public class CourseController {
         return ResponseEntity.ok(count);
     }
 
-    @Operation(summary = "Получить курсы, созданные пользователем (USER)")
+    @Operation(summary = "Получить подтверждённых курсы, созданные пользователем (USER)")
     @Secured("ROLE_USER")
     @GetMapping("/createdByUser/{userId}")
     public ResponseEntity<List<CourseResponse>> getCoursesCreatedByUser(@PathVariable int userId) {
@@ -115,7 +115,7 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
-    @Operation(summary = "Поиск курсов по названию, содержащему ключевое слово")
+    @Operation(summary = "Поиск подтверждённых курсов по названию, содержащему ключевое слово")
     @GetMapping("/search")
     public ResponseEntity<List<CourseResponse>> searchCoursesByTitle(@RequestParam String keyword) {
         List<CourseResponse> courses = courseService.searchCoursesByTitle(keyword).stream()

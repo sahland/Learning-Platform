@@ -50,13 +50,11 @@ public class CourseService {
         if (sections == null || sections.isEmpty()) {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
-
         course.setCreator(creator);
         setSectionNumbersAndCourse(sections, course);
         course.setStatus(CourseStatus.IN_PROCESSING);
         course.setPublishedDate(LocalDate.now());
         Course savedCourse = courseRepository.save(course);
-
         Set<Tag> savedTags = new HashSet<>();
         for (Tag tag : tags) {
             List<Tag> existingTags = tagRepository.findByTagName(tag.getTagName());
@@ -67,11 +65,9 @@ public class CourseService {
             }
         }
         savedCourse.setTags(savedTags);
-
         if (avatarFile != null && !avatarFile.isEmpty()) {
             uploadCourseAvatar(savedCourse.getCourseId(), avatarFile);
         }
-
         return savedCourse;
     }
 
@@ -81,11 +77,9 @@ public class CourseService {
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь с указанным логином не найден: " + username));
         Course existingCourse = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Курс с указанным идентификатором не найден: " + courseId));
-
         if (updatedSections == null || updatedSections.isEmpty()) {
             throw new IllegalArgumentException("Курс должен содержать как минимум одну секцию.");
         }
-
         existingCourse.setTitle(updatedCourse.getTitle());
         existingCourse.setStatus(CourseStatus.IN_PROCESSING);
         updateSections(existingCourse, updatedSections);
@@ -99,11 +93,9 @@ public class CourseService {
             }
         }
         existingCourse.setTags(savedTags);
-
         if (avatarFile != null && !avatarFile.isEmpty()) {
             uploadCourseAvatar(existingCourse.getCourseId(), avatarFile);
         }
-
         return courseRepository.save(existingCourse);
     }
 
@@ -112,12 +104,20 @@ public class CourseService {
                 .orElseThrow(() -> new IllegalArgumentException("Курс с указанным идентификатором не найден: " + courseId));
     }
 
-
     public List<CourseResponse> getAllCourses() {
         List<Course> courses = courseRepository.findAll();
         return courses.stream()
                 .map(courseMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    public Course getConfirmedCourseById(int courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
+        if (!"PUBLISHED".equals(course.getStatus())) {
+            throw new IllegalArgumentException("Курс с указанным ID не подтвержден: " + courseId);
+        }
+        return course;
     }
 
     public Course getCourseById(int courseId) {
@@ -143,12 +143,14 @@ public class CourseService {
     }
 
     public List<Course> getCoursesCreatedByUser(int userId) {
-        return courseRepository.findByCreatorUserId(userId);
+        User creator = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь с указанным ID не найден: " + userId));
+        return courseRepository.findByCreatorAndStatusPublished(creator);
     }
 
     @Transactional
     public List<Course> searchCoursesByTitle(String keyword) {
-        return courseRepository.findByTitleContaining(keyword);
+        return courseRepository.findByTitleContainingAndStatusPublished(keyword);
     }
 
     private void setSectionNumbersAndCourse(List<CourseSection> sections, Course course) {
@@ -175,8 +177,10 @@ public class CourseService {
     public List<CourseSection> getAllSectionsByCourseId(int courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
-        List<CourseSection> sections = course.getSections();
-        return sections;
+        if (!"PUBLISHED".equals(course.getStatus())) {
+            throw new IllegalArgumentException("Курс с указанным ID не опубликован: " + courseId);
+        }
+        return course.getSections();
     }
 
     @Transactional
@@ -245,9 +249,7 @@ public class CourseService {
     }
 
     public Set<Course> getAllCoursesForTag(int tagId) {
-        Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new IllegalArgumentException("Тег не найден по ID: " + tagId));
-        return tag.getCourses();
+        return courseRepository.findByTagIdAndStatusPublished(tagId);
     }
 
     public Set<Tag> getTagsByCourseId(int courseId) {
