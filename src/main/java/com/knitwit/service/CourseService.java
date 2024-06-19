@@ -112,12 +112,8 @@ public class CourseService {
     }
 
     public Course getConfirmedCourseById(int courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
-        if (!"PUBLISHED".equals(course.getStatus())) {
-            throw new IllegalArgumentException("Курс с указанным ID не подтвержден: " + courseId);
-        }
-        return course;
+        return courseRepository.findByIdAndStatusPublished(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Подтверждённый курс с указанным ID не найден: " + courseId));
     }
 
     public Course getCourseById(int courseId) {
