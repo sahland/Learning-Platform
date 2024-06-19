@@ -36,3 +36,13 @@ jwt:
 
 server:
   port: 8081
+
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: knitwitadmin
+    keyStoreType: PKCS12
+    keyAlias: tomcat
+
+  security:
+    require-ssl: true
