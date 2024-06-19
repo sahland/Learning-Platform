@@ -171,11 +171,8 @@ public class CourseService {
     }
 
     public List<CourseSection> getAllSectionsByCourseId(int courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден: " + courseId));
-        if (!"PUBLISHED".equals(course.getStatus())) {
-            throw new IllegalArgumentException("Курс с указанным ID не опубликован: " + courseId);
-        }
+        Course course = courseRepository.findByIdAndStatusPublished(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Курс с указанным ID не найден или не опубликован: " + courseId));
         return course.getSections();
     }
 
