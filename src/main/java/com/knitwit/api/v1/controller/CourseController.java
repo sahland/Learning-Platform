@@ -259,10 +259,13 @@ public class CourseController {
     }
 
     @Operation(summary = "Получить секццию курса по ID (USER)")
-    @GetMapping("/sections/{sectionId}")
+    @GetMapping("/{courseId}/sections/{sectionId}")
     @Secured("ROLE_USER")
-    public ResponseEntity<CourseSectionResponse> getSectionById(@PathVariable int sectionId) {
-        CourseSection section = courseSectionService.getSectionById(sectionId);
+    public ResponseEntity<CourseSectionResponse> getSectionById(
+            @PathVariable int courseId,
+            @PathVariable int sectionId) {
+
+        CourseSection section = courseSectionService.getSectionById(courseId, sectionId);
         if (section != null) {
             CourseSectionResponse response = courseSectionMapper.toResponse(section);
             return new ResponseEntity<>(response, HttpStatus.OK);
