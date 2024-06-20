@@ -3,14 +3,17 @@ package com.knitwit.api.v1.controller;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knitwit.api.v1.dto.mapper.CourseMapper;
+import com.knitwit.api.v1.dto.mapper.CourseSectionMapper;
 import com.knitwit.api.v1.dto.request.CourseRequest;
 import com.knitwit.api.v1.dto.response.CourseResponse;
+import com.knitwit.api.v1.dto.response.CourseSectionResponse;
 import com.knitwit.model.Course;
 import com.knitwit.model.CourseSection;
 import com.knitwit.model.Tag;
 import com.knitwit.model.User;
 import com.knitwit.repository.UserRepository;
 import com.knitwit.service.AuthService;
+import com.knitwit.service.CourseSectionService;
 import com.knitwit.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,8 @@ public class CourseController {
     private final CourseMapper courseMapper;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final CourseSectionService courseSectionService;
+    private final CourseSectionMapper courseSectionMapper;
 
     @Operation(summary = "Создать курс (USER)")
     @Secured("ROLE_USER")
@@ -251,5 +256,18 @@ public class CourseController {
     public ResponseEntity<String> uploadCourseAvatar(@PathVariable int courseId, @RequestParam("file") MultipartFile file) {
         String avatarUrl = courseService.uploadCourseAvatar(courseId, file);
         return ResponseEntity.ok(avatarUrl);
+    }
+
+    @Operation(summary = "Получить секццию курса по ID (USER)")
+    @GetMapping("/sections/{sectionId}")
+    @Secured("ROLE_USER")
+    public ResponseEntity<CourseSectionResponse> getSectionById(@PathVariable int sectionId) {
+        CourseSection section = courseSectionService.getSectionById(sectionId);
+        if (section != null) {
+            CourseSectionResponse response = courseSectionMapper.toResponse(section);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 }
